@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 
-elo_file = 'mlb_elo.csv'
+elo_file = 'mlb_elo.csv' #<-- probably need to re-download this every time. It was too big to upload to github
 logs_file = 'game_logs_2019_to_20230605.csv'
 save_destination = 'cleaned_logs_2019_to_20230605.csv'
 start_date = '2019-03-20'
