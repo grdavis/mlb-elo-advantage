@@ -43,7 +43,13 @@ DK_TEAM_MAP = {
 def download_todays_odds():
 	print('collecting odds data from DraftKings...')
 	odds_url = "https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory=game"
-	driver = webdriver.Chrome(ChromeDriverManager().install())
+	chrome_options = webdriver.ChromeOptions()
+	chrome_options.add_argument('--no-sandbox')
+	chrome_options.add_argument('--window-size=1420,1080')
+	chrome_options.add_argument('--headless')
+	chrome_options.add_argument('--disable-gpu')
+
+	driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options = chrome_options)
 	driver.set_page_load_timeout(30)
 	
 	try:
