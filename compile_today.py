@@ -48,15 +48,15 @@ def download_todays_odds():
 	chrome_options.add_argument('--window-size=1420,1080')
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--disable-gpu')
-
 	driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options = chrome_options)
-	driver.set_page_load_timeout(30)
 	
-	try:
-		driver.get(odds_url)
-	except TimeoutException:
-		driver.execute_script("window.stop();")
-
+	###Option to uncomment the next five lines to run faster - does not seem to work well as part of the GitHub workflow though
+	# driver.set_page_load_timeout(30)
+	# try:
+		# driver.get(odds_url)
+	# except TimeoutException:
+		# driver.execute_script("window.stop();")
+	driver.get(odds_url)
 	data = (driver.page_source).encode('utf-8')
 	tables = BeautifulSoup(data, 'html.parser').find_all('table', {'class': 'sportsbook-table'})
 	today_rows = []
