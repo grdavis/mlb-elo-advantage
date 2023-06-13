@@ -4,6 +4,7 @@ import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.utils import ChromeType
 
 DK_TEAM_MAP = {
 	'KC Royals': 'KCR', 
@@ -45,10 +46,14 @@ def download_todays_odds():
 	odds_url = "https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory=game"
 	chrome_options = webdriver.ChromeOptions()
 	chrome_options.add_argument('--no-sandbox')
-	chrome_options.add_argument('--window-size=1420,1080')
+	chrome_options.add_argument('--window-size=1920,1200')
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--disable-gpu')
-	driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options = chrome_options)
+	chrome_options.add_argument('--ignore-certificate-errors')
+	chrome_options.add_argument('--disable-extensions')
+	chrome_options.add_argument('--disable-dev-shm-usage')
+
+	driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=chrome_options)
 	
 	###Option to uncomment the next five lines to run faster - does not seem to work well as part of the GitHub workflow though
 	# driver.set_page_load_timeout(30)
@@ -99,12 +104,12 @@ def odds_conversion_helper(x):
 	#takes in a win probability, calculates what the implied probability would need to be to take advantage,
 	#and then converts that probability to the minimum odds we need to make the bet 
 	x /= 1.08
-	if x <= .5: return (100 - (x * 100)) / x
-	return (x * -100) / (1 - x)
+	if x <= .5: return round((100 - (x * 100)) / x, 0)
+	return round((x * -100) / (1 - x), 0)
 
 def create_output(dk_df, five_df):
 	print('creating final output...')
-	combo = five_df.merge(dk_df, how = 'inner', left_on = ['team1', 'team2'], right_on = ['HOME', 'AWAY'])
+	combo = five_df.merge(dk_df, how = 'left', left_on = ['team1', 'team2'], right_on = ['HOME', 'AWAY'])
 	combo['home_odds_req'] = combo['rating_prob1'].apply(odds_conversion_helper)
 	combo['away_odds_req'] = combo['rating_prob2'].apply(odds_conversion_helper)
 	combo['HOME_ML'] = combo['HOME_ML'].str.replace('−', '-')
