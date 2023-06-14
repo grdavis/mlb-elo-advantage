@@ -1,11 +1,10 @@
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.utils import ChromeType
-from selenium.webdriver.common.by import By
 import time
 
 DK_TEAM_MAP = {
@@ -49,17 +48,10 @@ def download_todays_odds():
 	chrome_options = webdriver.ChromeOptions()
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--ignore-certificate-errors')
-
 	driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=chrome_options)
-	
-	###Option to uncomment the next five lines to run faster - does not seem to work well as part of the GitHub workflow though
-	# driver.set_page_load_timeout(30)
-	# try:
-		# driver.get(odds_url)
-	# except TimeoutException:
-		# driver.execute_script("window.stop();")
 	driver.get(odds_url)
-	time.sleep(120)
+	# time.sleep(120) #needed to add this to give the page time to load in the GitHub Action workflow
+	
 	data = (driver.page_source).encode('utf-8')
 	tables = BeautifulSoup(data, 'html.parser').find_all('table', {'class': 'sportsbook-table'})
 	today_rows = []
@@ -74,7 +66,7 @@ def download_todays_odds():
 
 	home = False
 	all_data = []
-	today = datetime.now()
+	today = datetime.now() - timedelta(hours = 5) #adjust for time difference on GitHub virtual machine
 	for row in today_rows:
 		team = DK_TEAM_MAP[row.find('div', {'class': 'event-cell__name-text'}).text]
 		ml_td = row.find_all('td')[-1]
@@ -95,7 +87,7 @@ def get_538_data():
 	five_url = 'https://projects.fivethirtyeight.com/mlb-api/mlb_elo_latest.csv'
 	df = pd.read_csv(five_url)
 	df = df.loc[df['date'] == datetime.today().strftime('%Y-%m-%d')]
-	df.to_csv('ELOS/mlb_elo_latest_%s.csv' % datetime.today().strftime('%Y%m%d'))
+	df.to_csv('ELOS/mlb_elo_latest_%s.csv' % (datetime.today() - timedelta(hours = 5)).strftime('%Y%m%d'))
 	return df
 
 def odds_conversion_helper(x):
@@ -113,6 +105,6 @@ def create_output(dk_df, five_df):
 	combo['HOME_ML'] = combo['HOME_ML'].str.replace('−', '-')
 	combo['AWAY_ML'] = combo['AWAY_ML'].str.replace('−', '-')
 	combo = combo[['team1', 'team2', 'rating_prob1', 'rating_prob2', 'HOME_ML', 'home_odds_req', 'AWAY_ML', 'away_odds_req']]
-	combo.to_csv('OUTPUTS/output_%s.csv' % datetime.today().strftime('%Y%m%d'), index = False, encoding = "utf-8")
+	combo.to_csv('OUTPUTS/output_%s.csv' % (datetime.today() - timedelta(hours = 5)).strftime('%Y%m%d'), index = False, encoding = "utf-8")
 
 create_output(download_todays_odds(), get_538_data())
