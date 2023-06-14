@@ -5,6 +5,8 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.utils import ChromeType
+from selenium.webdriver.common.by import By
+import time
 
 DK_TEAM_MAP = {
 	'KC Royals': 'KCR', 
@@ -45,13 +47,8 @@ def download_todays_odds():
 	print('collecting odds data from DraftKings...')
 	odds_url = "https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory=game"
 	chrome_options = webdriver.ChromeOptions()
-	chrome_options.add_argument('--no-sandbox')
-	chrome_options.add_argument('--window-size=1920,1200')
 	chrome_options.add_argument('--headless')
-	chrome_options.add_argument('--disable-gpu')
 	chrome_options.add_argument('--ignore-certificate-errors')
-	chrome_options.add_argument('--disable-extensions')
-	chrome_options.add_argument('--disable-dev-shm-usage')
 
 	driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=chrome_options)
 	
@@ -62,6 +59,7 @@ def download_todays_odds():
 	# except TimeoutException:
 		# driver.execute_script("window.stop();")
 	driver.get(odds_url)
+	time.sleep(120)
 	data = (driver.page_source).encode('utf-8')
 	tables = BeautifulSoup(data, 'html.parser').find_all('table', {'class': 'sportsbook-table'})
 	today_rows = []
