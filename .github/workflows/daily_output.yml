@@ -21,15 +21,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: execute py script # run predictions.py
-        run: python compile_today.py
+      - name: execute py script
+        run: python elo.py
           
       - name: commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
-          git commit -m "update data and generate daily output" -a
+          git commit -m "update data and make predictions" -a
           
       - name: push changes
         uses: ad-m/github-push-action@v0.6.0
