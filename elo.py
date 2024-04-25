@@ -14,7 +14,7 @@ K_FACTOR = 4
 HOME_ADVANTAGE = 24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
-OUTPUT_PATH = f"OUTPUT/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
+OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 
 class Team():
 	'''
