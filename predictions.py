@@ -4,6 +4,8 @@ from datetime import datetime
 import pandas as pd
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
+ADV_THRESHOLD = .04
+ADV_PCT_THRESHOLD = .07 
 
 def odds_needed(winp, adv_type):
 	'''
@@ -31,6 +33,9 @@ def make_predictions(this_sim, df, pred_date = None):
 	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Adv_Pct Threshold, Home ML, Home Adv_Pct Threshold]
 	Output presented as a plotly table and saved to markdown for presentation on GitHub pages
 	'''
+	# print(pred_date)
+	# print(df.loc[df['Date'] > "2024-04-30"])
+	# exit()
 	preds = []
 	for index, row in df.iterrows():
 		if pred_date == None:
@@ -43,7 +48,10 @@ def make_predictions(this_sim, df, pred_date = None):
 		preds.append([row['Date'], row['Away'], row['Home'], round(100-winph*100, 2), round(100*winph, 2), 
 					row['Away_ML'], odds_needed(1 - winph, 'adv_pct'), row['Home_ML'], odds_needed(winph, 'adv_pct')])
 	
+
+	# print(preds)
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
+	# print(output_df)
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
 	
 	#save the predictions output and ratings in markdown where github pages can find it
@@ -55,7 +63,7 @@ def main():
 	This method leverages elo.py to get the latest old data, scrape to update, and get the odds for upcoming games
 	Using that updated dataframe, this script predicts games today by default
 	'''
-	this_sim, df = elo.main()
+	this_sim, df = elo.main(scrape = True, save_scrape = True, save_new_scrape = False, print_ratings = False)
 	make_predictions(this_sim, df, pred_date = utils.date_to_string(datetime.today()))
 
 if __name__ == '__main__':

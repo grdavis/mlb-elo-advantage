@@ -8,8 +8,6 @@ MLB ELO methodology taken from https://www.baseballprospectus.com/news/article/5
 and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
 '''
 
-ADV_THRESHOLD = .04
-ADV_PCT_THRESHOLD = .07 
 K_FACTOR = 4
 HOME_ADVANTAGE = 24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
@@ -112,21 +110,28 @@ def sim(df, k_factor, home_adv):
 	'''
 	output = []
 	this_sim = ELO_Sim()
+	bdate = None
 	for index, row in df.iterrows():
+		bdate = row['Date']
 		#stop the sim as soon as we get to games that have not happened yet
-		if utils.string_to_date(row['Date']).date() >= datetime.today().date(): break
+		if utils.string_to_date(bdate).date() >= datetime.today().date(): break
 		#apply the season reset if we have incremented by a year
-		if (this_sim.date != '') and (this_sim.date[:4] != row['Date'][:4]): this_sim.season_reset()
+		if (this_sim.date != '') and (this_sim.date[:4] != bdate[:4]): this_sim.season_reset()
 		
 		#step the Elo system forward based on the results in the row and enrich the output data
-		this_sim.date = row['Date']
+		this_sim.date = bdate
 		h, a, hp, ap = step_elo(this_sim, row, k_factor, home_adv)
 		output.append(list(row) + [h, a, hp, ap])
 
 	output_df = pd.DataFrame(output)
 	output_df.columns = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML',
 						'HOME_PRE_ELO', 'AWAY_PRE_ELO', 'HOME_PRE_PROB', 'AWAY_PRE_PROB']
-	return this_sim, output_df
+	
+	#bring together the output_df which reflects historical games with the remaining future games
+	sched_df = df.loc[df['Date'] >= bdate]
+	combo = pd.concat([output_df, sched_df], axis = 0, join = 'outer')
+	
+	return this_sim, combo
 
 def main(scrape = True, save_scrape = True, save_new_scrape = True, print_ratings = False):
 	'''
