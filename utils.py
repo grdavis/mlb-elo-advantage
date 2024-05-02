@@ -1,8 +1,11 @@
 import re
 import os
+import plotly.graph_objects as go
 from datetime import datetime
 
 DATA_FOLDER = 'DATA/'
+DOCS_FOLDER = 'docs/'
+OUTPUTS_FOLDER = 'OUTPUTS/'
 
 #ELOs to start the 2023 season - This is when the ELO model restarts every run
 STARTING_ELOS = { 
@@ -128,3 +131,38 @@ def get_latest_data_filepath():
 	r = re.compile("game_log_.*.csv")
 	elligible_data = list(filter(r.match, os.listdir(DATA_FOLDER)))
 	return DATA_FOLDER + sorted(elligible_data, key = lambda x: x[9:19], reverse = True)[0]
+
+def save_markdown_df(predictions, ratings, date_str):
+	'''
+	Takes in a predictions dataframe of today's predictions and a table with the team rankings
+	Converts tables to markdown, and saves them in the same file in the docs folder for GitHub pages to find
+	'''
+	with open(f"{DOCS_FOLDER}/index.md", 'w') as md:
+		md.write(f'# MLB Elo Game Predictions for {date_str} - @grdavis\n')
+		md.write("Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.\n\n")
+		predictions.to_markdown(buf = md, index = False)
+		md.write('\n\n')
+		md.write('# Team Elo Ratings\n')
+		ratings.index = ratings.index + 1
+		ratings.to_markdown(buf = md, index = True)
+
+def table_output(df, table_title, order = None):
+	'''
+	saves the specified dataframe as a csv and outputs it in the form of a Plotly table
+	df: dataframe to structure in the form of a plotly table for .html output
+	table_title: title used in table
+	order: optional list of strings that specifies an order the columns should be presented in
+	'''
+	if order != None:
+		df = df[order]
+	df.to_csv(OUTPUTS_FOLDER + table_title + '.csv', index = False)
+	fig = go.Figure(data=[go.Table(
+	    header=dict(values=list(df.columns),
+	                fill_color='paleturquoise',
+	                align='left'),
+	    cells=dict(values=[df[col].to_list() for col in list(df)],
+	               # fill_color='lavender',
+	               align='left'))
+	])
+	fig.update_layout(title = {'text': table_title, 'xanchor': 'center', 'x': .5})
+	fig.show()
