@@ -47,7 +47,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
 	
 	#save the predictions output and ratings in markdown where github pages can find it
-	ratings = pd.DataFrame(sorted([(team, this_sim.get_elo(team)) for team in this_sim.teams], key = lambda x: x[1]), columns = ['Team', 'Elo Rating']) 
+	ratings = pd.DataFrame(sorted([(team, this_sim.get_elo(team)) for team in this_sim.teams], key = lambda x: x[1], reverse = True), columns = ['Team', 'Elo Rating']) 
 	utils.save_markdown_df(output_df, ratings, pred_date)
 
 def main():
