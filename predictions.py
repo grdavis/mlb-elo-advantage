@@ -33,9 +33,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Adv_Pct Threshold, Home ML, Home Adv_Pct Threshold]
 	Output presented as a plotly table and saved to markdown for presentation on GitHub pages
 	'''
-	# print(pred_date)
-	# print(df.loc[df['Date'] > "2024-04-30"])
-	# exit()
+
 	preds = []
 	for index, row in df.iterrows():
 		if pred_date == None:
@@ -48,10 +46,8 @@ def make_predictions(this_sim, df, pred_date = None):
 		preds.append([row['Date'], row['Away'], row['Home'], round(100-winph*100, 2), round(100*winph, 2), 
 					row['Away_ML'], odds_needed(1 - winph, 'adv_pct'), row['Home_ML'], odds_needed(winph, 'adv_pct')])
 	
-
-	# print(preds)
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
-	# print(output_df)
+	output_df.to_csv(OUTPUT_PATH, index = False)
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
 	
 	#save the predictions output and ratings in markdown where github pages can find it
