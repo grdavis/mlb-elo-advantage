@@ -1,6 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import get_latest_data_filepath
 UNIT = 1
