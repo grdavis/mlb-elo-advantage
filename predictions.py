@@ -47,7 +47,6 @@ def make_predictions(this_sim, df, pred_date = None):
 					row['Away_ML'], odds_needed(1 - winph, 'adv_pct'), row['Home_ML'], odds_needed(winph, 'adv_pct')])
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
-	output_df.to_csv(OUTPUT_PATH, index = False)
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
 	
 	#save the predictions output and ratings in markdown where github pages can find it

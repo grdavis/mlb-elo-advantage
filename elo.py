@@ -143,7 +143,8 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 	games_before = latest_filepath[14:-4] #the data does not have games on or after this date
 	df = pd.read_csv(latest_filepath)
 	
-	if scrape:
+	#if the latest data is not up to date and scrape is true, continue with the scraping
+	if utils.string_to_date(games_before).date() < datetime.today().date() and scrape:
 		#grabs the latest "golden" source of truth schedule
 		new_df = scrape_results_and_schedule(on_or_after = games_before, save_new_scrape = save_new_scrape) 
 
