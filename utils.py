@@ -1,7 +1,7 @@
 import re
 import os
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DATA_FOLDER = 'DATA/'
 DOCS_FOLDER = 'docs/'
@@ -109,7 +109,13 @@ SO_TEAM_MAP = {
 
 def date_to_string(obj): return obj.strftime('%Y-%m-%d')
 
+def today_date_string(): return date_to_string(datetime.today())
+
 def string_to_date(date_str): return datetime.strptime(date_str, '%Y-%m-%d')
+
+def shift_dstring(day_string, days):
+	#take in a string in the format YYYYMMDD and return it shifted the specified number of days (could be positive or negative days)
+	return date_to_string(string_to_date(day_string) + timedelta(days = days))
 
 def merge_odds_and_sched(sched, odds):
 	'''
@@ -132,19 +138,50 @@ def get_latest_data_filepath():
 	elligible_data = list(filter(r.match, os.listdir(DATA_FOLDER)))
 	return DATA_FOLDER + sorted(elligible_data, key = lambda x: x[9:19], reverse = True)[0]
 
-def save_markdown_df(predictions, ratings, date_str):
+def save_markdown_df(predictions, ratings, date_str, performance):
 	'''
 	Takes in a predictions dataframe of today's predictions and a table with the team rankings
 	Converts tables to markdown, and saves them in the same file in the docs folder for GitHub pages to find
+	Also takes in the recent performance of the betting recommendations and publishes performance
 	'''
+	r7, b7 = performance[0]
+	r30, r365 = performance[1][0], performance[2][0]
 	with open(f"{DOCS_FOLDER}/index.md", 'w') as md:
 		md.write(f'# MLB Elo Game Predictions for {date_str} - @grdavis\n')
 		md.write("Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.\n\n")
+		md.write("The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. ")
+		md.write(f"For transparency, these recommendations have been triggered for {b7}% of games and have a {r7}% ROI over the last 7 days. ROI is {r30}% over the last 30 days and {r365}% over the last 365.\n\n")
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
+
+def remove_files(to_remove, k):
+	'''
+	Deletes all but the first k files provided in to_remove. Assuming to_remove is sorted chronologically,
+	this removes all but the most recent k files
+	'''
+	if len(to_remove) > k:
+		for f in to_remove[k:]:
+			os.remove(f)
+
+def clean_up_old_outputs_and_data():
+	'''
+	Goes through the outputs and data folders to remove all but the 3 latest files. The files are
+	really only saved for debugging purposes anyways, so no need to have so much extra data.
+	'''
+	#DATA
+	r = re.compile("game_log_.*.csv")
+	elligible_data = list(filter(r.match, os.listdir(DATA_FOLDER)))
+	sorted_files = sorted(elligible_data, key = lambda x: x[9:19], reverse = True)
+	remove_files([DATA_FOLDER + f for f in sorted_files], 3)
+
+	#OUTPUTS
+	r = re.compile(".*Game Predictions.*.csv")
+	elligible_data = list(filter(r.match, os.listdir(OUTPUTS_FOLDER)))
+	sorted_files = sorted(elligible_data, key = lambda x: x[-14:-4], reverse = True)
+	remove_files([OUTPUTS_FOLDER + f for f in sorted_files], 3)
 
 def table_output(df, table_title, order = None):
 	'''

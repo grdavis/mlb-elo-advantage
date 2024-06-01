@@ -12,6 +12,7 @@ K_FACTOR = 4
 HOME_ADVANTAGE = 24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
+SNAPSHOT_LOOKBACKS = [7, 30, 90]
 
 class Team():
 	'''
@@ -20,9 +21,14 @@ class Team():
 	def __init__(self, name, date, starting_elo):
 		self.name = name
 		self.elo = starting_elo
+		self.day_lag_snapshots = {} #maps a number of days ago to rating on that day (e.g. {7: 1500} says the team had a 1500 rating 7 days ago)
 
 	def update_elo(self, change):
 		self.elo = max(0, self.elo + change)
+
+	def snapshot(self, val):
+		#add to day_lag_snapshots {val: current elo}
+		self.day_lag_snapshots[val] = self.elo
 
 class ELO_Sim():
 	'''
@@ -45,8 +51,11 @@ class ELO_Sim():
 		return 1 / (1 + 10**(-elo_margin/400))
 
 	def season_reset(self):
-		for team in self.teams:
-			self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + 1500 * (1 - SEASON_RESET_MULT)
+		for team in self.teams: self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + 1500 * (1 - SEASON_RESET_MULT)
+
+	def take_snapshots(self, val):
+		#snapshot current elo for all teams - snapshot value stored in the Team object
+		for team in self.teams: self.teams[team].snapshot(val)
 
 def calc_MoV_multiplier(elo_margin, MoV):
 	'''
@@ -101,7 +110,7 @@ def step_elo(this_sim, row, k_factor, home_adv):
 
 	return pre_home, pre_away, pre_home_prob, pre_away_prob
 
-def sim(df, k_factor, home_adv):
+def sim(df, k_factor, home_adv, snapshots = SNAPSHOT_LOOKBACKS):
 	'''
 	Creates a new ELO_Sim object, steps it through each row in the provided dataframe.
 	Stops once it reaches a game that has not occurred yet (its date >= today).
@@ -111,12 +120,29 @@ def sim(df, k_factor, home_adv):
 	output = []
 	this_sim = ELO_Sim()
 	bdate = None
+	today_date = utils.today_date_string()
+	snapshot_dates = {utils.shift_dstring(today_date, -i) : i for i in snapshots}
+	snapshot_day = False
+	
 	for index, row in df.iterrows():
+		#if we get to a bdate on which we should take a snapshot, set snapshot_day = True
+		if bdate in snapshot_dates: snapshot_day = True
+
+		#if this new row does not match the existing bdate, we've finished the previous bdate
+		#if that bdate was a snapshot_day, take a snapshot, and set snapshot_day = False
+		if bdate != row['Date'] and snapshot_day: 
+			this_sim.take_snapshots(snapshot_dates[bdate])
+			snapshot_day = False
+
 		bdate = row['Date']
+		
 		#stop the sim as soon as we get to games that have not happened yet
-		if utils.string_to_date(bdate).date() >= datetime.today().date(): break
-		#apply the season reset if we have incremented by a year
-		if (this_sim.date != '') and (this_sim.date[:4] != bdate[:4]): this_sim.season_reset()
+		if bdate >= today_date: break
+		
+		#apply the season reset and snapshot if we have incremented by a year
+		if (this_sim.date != '') and (this_sim.date[:4] != bdate[:4]): 
+			this_sim.season_reset()
+			this_sim.take_snapshots('pre-season')
 		
 		#step the Elo system forward based on the results in the row and enrich the output data
 		this_sim.date = bdate
@@ -161,6 +187,7 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 		df = pd.concat([df, merged_df]) 
 		if save_scrape: df.to_csv(SAVE_PATH, index = False)
 
+	#run the elo sim on the assembled DataFrame
 	sim_out, odf = sim(df, K_FACTOR, HOME_ADVANTAGE)
 	if print_ratings: 
 		print(f'Ratings based on games before {games_before}...')

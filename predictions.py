@@ -2,6 +2,7 @@ import elo
 import utils
 from datetime import datetime
 import pandas as pd
+import analysis
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 ADV_THRESHOLD = .04
@@ -25,6 +26,16 @@ def odds_needed(winp, adv_type):
 	else:
 		return f"-{int(round((100 * original_implied) / (1 - original_implied), 0))}"
 
+def clean_up_ratings(this_sim):
+	out_data = []
+	for team in this_sim.teams:
+		this_row = [team, round(this_sim.get_elo(team))]
+		snaps = [this_sim.teams[team].day_lag_snapshots.get(i, this_sim.teams[team].day_lag_snapshots['pre-season']) for i in elo.SNAPSHOT_LOOKBACKS]
+		out_data.append(this_row + [round(this_row[-1] - snap) for snap in snaps])
+	snap_col_names = [f'{i}-Day Change' for i in elo.SNAPSHOT_LOOKBACKS]
+	out_data = sorted(out_data, key = lambda x: x[1], reverse = True)
+	return pd.DataFrame(out_data, columns = ['Team', 'Elo Rating'] + snap_col_names)
+
 def make_predictions(this_sim, df, pred_date = None):
 	'''
 	Defaults to making predictions for every game from today onwards. 
@@ -33,7 +44,6 @@ def make_predictions(this_sim, df, pred_date = None):
 	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Adv_Pct Threshold, Home ML, Home Adv_Pct Threshold]
 	Output presented as a plotly table and saved to markdown for presentation on GitHub pages
 	'''
-
 	preds = []
 	for index, row in df.iterrows():
 		if pred_date == None:
@@ -48,10 +58,11 @@ def make_predictions(this_sim, df, pred_date = None):
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
+	last_7_30_365 = (analysis.eval_recent_performance(7), analysis.eval_recent_performance(30), analysis.eval_recent_performance(365))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
-	ratings = pd.DataFrame(sorted([(team, this_sim.get_elo(team)) for team in this_sim.teams], key = lambda x: x[1], reverse = True), columns = ['Team', 'Elo Rating']) 
-	utils.save_markdown_df(output_df, ratings, pred_date)
+	ratings = clean_up_ratings(this_sim)
+	utils.save_markdown_df(output_df, ratings, pred_date, last_7_30_365)
 
 def main():
 	'''
