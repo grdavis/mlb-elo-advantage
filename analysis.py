@@ -4,7 +4,7 @@ from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import get_latest_data_filepath, today_date_string, shift_dstring
 from tqdm import tqdm
 UNIT = 1
-cols = 'ADV' #toggle between ADV_PCT and ADV
+cols = 'ADV_PCT' #toggle between ADV_PCT and ADV
 
 def odds_calc(x):
     if x < 0:
@@ -123,11 +123,11 @@ def tune_home_and_k():
 
     print(sorted(briers, key = lambda x: x[-1]))
 
-# advantage_cutoff_tuning('20240101')
+advantage_cutoff_tuning('2024-01-01')
 # tune_home_and_k()
 #when ADV is percentage-based
 '''
-Performance for 2023 season
+Performance for 2023 through June 2024 
 choose threshold 0.08 for 5.2% ROI and 26% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
 0            0.01     2042.0    -12.52  -0.57                 67
@@ -151,14 +151,14 @@ choose threshold 0.08 for 5.2% ROI and 26% bet rate
 
 #when ADV is difference-based
 '''
-Performance for 2023 season
-choose threshold 0.04 for 6.8% ROI and 21% bet rate
+Performance for 2023 through June 2024
+choose threshold 0.04 for 7.6% ROI and 22% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     1809.0     11.04   0.57                 59
-1            0.02     1352.0      5.93   0.41                 44
-2            0.03      993.0     20.98   2.03                 32
-3            0.04      652.0     45.95   6.83                 21
-4            0.05      385.0     42.76  10.83                 13
-5            0.06      176.0      8.09   4.50                  6
-6            0.07       16.0     -3.85 -23.77                  1
+0            0.01     1349.0     21.58   1.49                 61
+1            0.02     1015.0     17.27   1.60                 46
+2            0.03      750.0     21.11   2.70                 34
+3            0.04      499.0     39.00   7.58                 22
+4            0.05      306.0     35.11  11.22                 14
+5            0.06      154.0      2.69   1.72                  7
+6            0.07       32.0     -5.03 -15.62                  1
 '''
