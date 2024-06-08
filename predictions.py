@@ -71,6 +71,7 @@ def main():
 	'''
 	this_sim, df = elo.main(scrape = True, save_scrape = True, save_new_scrape = False, print_ratings = False)
 	make_predictions(this_sim, df, pred_date = utils.date_to_string(datetime.today()))
+	utils.clean_up_old_outputs_and_data()
 
 if __name__ == '__main__':
 	main()

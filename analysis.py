@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from predictions import ADV_THRESHOLD, ADV_PCT_THRESHOLD
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import get_latest_data_filepath, today_date_string, shift_dstring
 UNIT = 1
@@ -93,7 +92,7 @@ def tuning():
         adv_profits.append([round(t, 2), aggs.loc['size', 'WAGER'], aggs.loc['sum', 'PROFIT'], round(aggs.loc['sum', 'PROFIT'] / aggs.loc['sum', 'WAGER'] * 100, 2), round(aggs.loc['size', 'WAGER'] / total_games * 100)])
     print(pd.DataFrame(adv_profits, columns = ['adv_threshold', 'games_bet', 'winnings', 'ROI', 'percent_games_bet']))
 
-
+# tuning()
 #when ADV is percentage-based
 '''
 Performance for 2023 season

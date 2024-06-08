@@ -47,7 +47,7 @@ class ELO_Sim():
 		self.teams[loser].update_elo(-delta)
 
 	def predict_home_winp(self, home_team, away_team):
-		elo_margin = self.get_elo(home_team) - self.get_elo(away_team)
+		elo_margin = self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team)
 		return 1 / (1 + 10**(-elo_margin/400))
 
 	def season_reset(self):
