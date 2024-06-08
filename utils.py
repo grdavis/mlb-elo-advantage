@@ -164,7 +164,6 @@ def remove_files(to_remove, k):
 	'''
 	if len(to_remove) > k:
 		for f in to_remove[k:]:
-			print(f)
 			os.remove(f)
 
 def clean_up_old_outputs_and_data():

@@ -3,8 +3,9 @@ import pandas as pd
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import get_latest_data_filepath, today_date_string, shift_dstring
 from tqdm import tqdm
+import predictions
+
 UNIT = 1
-cols = 'ADV_PCT' #toggle between ADV_PCT and ADV
 
 def odds_calc(x):
     if x < 0:
@@ -52,26 +53,28 @@ def assemble_results_and_predictions():
 
     return combo
 
-def convert_to_betting_rows(combo):
+def convert_to_betting_rows(combo, adv_to_use):
     #convert dataframe from one row per game to one row per possible betting side (2 rows per game)
-    mdf = pd.melt(combo, id_vars = ['H_WAGER', 'A_WAGER', 'H_PROFIT', 'A_PROFIT'], value_vars = [f'H_{cols}', f'A_{cols}'])
-    mdf['WAGER'] = mdf.apply(lambda x: x['H_WAGER'] if x['variable'] == f'H_{cols}' else x['A_WAGER'], axis = 1)
-    mdf['PROFIT'] = mdf.apply(lambda x: x['H_PROFIT'] if x['variable'] == f'H_{cols}' else x['A_PROFIT'], axis = 1)
+    mdf = pd.melt(combo, id_vars = ['H_WAGER', 'A_WAGER', 'H_PROFIT', 'A_PROFIT'], value_vars = [f'H_{adv_to_use}', f'A_{adv_to_use}'])
+    mdf['WAGER'] = mdf.apply(lambda x: x['H_WAGER'] if x['variable'] == f'H_{adv_to_use}' else x['A_WAGER'], axis = 1)
+    mdf['PROFIT'] = mdf.apply(lambda x: x['H_PROFIT'] if x['variable'] == f'H_{adv_to_use}' else x['A_PROFIT'], axis = 1)
     mdf.rename(columns = {'value': 'ADVANTAGE'}, inplace = True)
     return mdf
 
-def eval_recent_performance(recent_days):
+def eval_recent_performance(recent_days, adv_to_use):
     combo = assemble_results_and_predictions()
     combo = combo.loc[combo['Date'] >= shift_dstring(today_date_string(), -recent_days)]
     
-    mdf = convert_to_betting_rows(combo)
+    mdf = convert_to_betting_rows(combo, adv_to_use)
     total_games = mdf.shape[0] / 2 #divide by two since mdf has one row for each side of the game
     
+    threshold = predictions.ADV_PCT_THRESHOLD if adv_to_use != 'adv' else predictions.ADV_THRESHOLD
+
     #return the ROI and bet rate with current threshold used for predictions
-    aggs = mdf.loc[mdf['ADVANTAGE'] >= ADV_PCT_THRESHOLD][['WAGER', 'PROFIT']].agg(['size', 'sum'])
+    aggs = mdf.loc[mdf['ADVANTAGE'] >= threshold][['WAGER', 'PROFIT']].agg(['size', 'sum'])
     return (round(aggs.loc['sum', 'PROFIT'] / aggs.loc['sum', 'WAGER'] * 100, 2), round(aggs.loc['size', 'WAGER'] / total_games * 100))
 
-def advantage_cutoff_tuning(end_early = None):
+def advantage_cutoff_tuning(adv_to_use, end_early = None):
     '''
     Once realizing 538s ELOs are no longer going to be updated, I needed to replicate their ELO system
     script checks that there still is some signal to the scheme when using my ELOs. The point is to find
@@ -80,7 +83,7 @@ def advantage_cutoff_tuning(end_early = None):
     combo = assemble_results_and_predictions()
     if end_early != None:
         combo = combo.loc[combo['Date'] <= end_early]
-    mdf = convert_to_betting_rows(combo)
+    mdf = convert_to_betting_rows(combo, adv_to_use)
 
     #there might be some outliers throwing off the numbers, so let's remove the top 5% and bottom 5% of thresholds
     mdf['decile_rank'] = pd.qcut(mdf['ADVANTAGE'], 20, labels = False)
@@ -123,7 +126,7 @@ def tune_home_and_k():
 
     print(sorted(briers, key = lambda x: x[-1]))
 
-advantage_cutoff_tuning('2024-01-01')
+# advantage_cutoff_tuning('adv', '2024-01-01')
 # tune_home_and_k()
 #when ADV is percentage-based
 '''

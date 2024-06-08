@@ -7,7 +7,7 @@ import analysis
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 ADV_THRESHOLD = .04
 ADV_PCT_THRESHOLD = .08 
-ADV_TO_USE = 'adv_pct'
+ADV_TO_USE = 'ADV_PCT'
 
 def odds_needed(winp, adv_type):
 	'''
@@ -15,10 +15,10 @@ def odds_needed(winp, adv_type):
 	The thresholds for an advantage have been selected via backtesting. One methodology looks for an absolute
 	difference in predicted and implied win probability. Another looks for a percentage difference between
 	predicted and implied win probability. This function returns the odds needed to trigger based on adv_type
-	- adv_type: should be a string 'adv' to indicate we want to use the absolute difference method 
+	- adv_type: should be a string 'ADV' to indicate we want to use the absolute difference method 
 				it could be anything else to indicate we want to use the percentage difference method
 	'''
-	if adv_type == 'adv':
+	if adv_type == 'ADV':
 		original_implied = (winp - ADV_THRESHOLD)
 	else:
 		original_implied = (winp / (ADV_PCT_THRESHOLD + 1))
@@ -60,7 +60,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
-	last_7_30_365 = (analysis.eval_recent_performance(7), analysis.eval_recent_performance(30), analysis.eval_recent_performance(365))
+	last_7_30_365 = (analysis.eval_recent_performance(7, ADV_TO_USE), analysis.eval_recent_performance(30, ADV_TO_USE), analysis.eval_recent_performance(365, ADV_TO_USE))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
 	ratings = clean_up_ratings(this_sim)
