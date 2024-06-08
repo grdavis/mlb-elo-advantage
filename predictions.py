@@ -6,7 +6,8 @@ import analysis
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 ADV_THRESHOLD = .04
-ADV_PCT_THRESHOLD = .07 
+ADV_PCT_THRESHOLD = .08 
+ADV_TO_USE = 'adv_pct'
 
 def odds_needed(winp, adv_type):
 	'''
@@ -14,7 +15,8 @@ def odds_needed(winp, adv_type):
 	The thresholds for an advantage have been selected via backtesting. One methodology looks for an absolute
 	difference in predicted and implied win probability. Another looks for a percentage difference between
 	predicted and implied win probability. This function returns the odds needed to trigger based on adv_type
-	- adv_type: should be a string 'adv' to indicate we want to use the absolute difference method
+	- adv_type: should be a string 'adv' to indicate we want to use the absolute difference method 
+				it could be anything else to indicate we want to use the percentage difference method
 	'''
 	if adv_type == 'adv':
 		original_implied = (winp - ADV_THRESHOLD)
@@ -41,7 +43,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	Defaults to making predictions for every game from today onwards. 
 	pred_date could be used to specify a specific date to predict in format "YYYY-MM-DD"
 	Output is a list of every game predicted in the format: 
-	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Adv_Pct Threshold, Home ML, Home Adv_Pct Threshold]
+	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Threshold, Home ML, Home Threshold]
 	Output presented as a plotly table and saved to markdown for presentation on GitHub pages
 	'''
 	preds = []
@@ -54,7 +56,7 @@ def make_predictions(this_sim, df, pred_date = None):
 			if row['Date'] != pred_date: continue
 		winph = this_sim.predict_home_winp(row['Home'], row['Away'])
 		preds.append([row['Date'], row['Away'], row['Home'], round(100-winph*100, 2), round(100*winph, 2), 
-					row['Away_ML'], odds_needed(1 - winph, 'adv_pct'), row['Home_ML'], odds_needed(winph, 'adv_pct')])
+					row['Away_ML'], odds_needed(1 - winph, ADV_TO_USE), row['Home_ML'], odds_needed(winph, ADV_TO_USE)])
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)

@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import get_latest_data_filepath, today_date_string, shift_dstring
+from tqdm import tqdm
 UNIT = 1
-cols = 'ADV_PCT' #toggle between ADV_PCT and ADV
+cols = 'ADV' #toggle between ADV_PCT and ADV
 
 def odds_calc(x):
     if x < 0:
@@ -70,13 +71,15 @@ def eval_recent_performance(recent_days):
     aggs = mdf.loc[mdf['ADVANTAGE'] >= ADV_PCT_THRESHOLD][['WAGER', 'PROFIT']].agg(['size', 'sum'])
     return (round(aggs.loc['sum', 'PROFIT'] / aggs.loc['sum', 'WAGER'] * 100, 2), round(aggs.loc['size', 'WAGER'] / total_games * 100))
 
-def tuning():
+def advantage_cutoff_tuning(end_early = None):
     '''
     Once realizing 538s ELOs are no longer going to be updated, I needed to replicate their ELO system
     script checks that there still is some signal to the scheme when using my ELOs. The point is to find
     the recommended threshold cutoffs for ADV and ADV_PCT based on historical performance
     '''
     combo = assemble_results_and_predictions()
+    if end_early != None:
+        combo = combo.loc[combo['Date'] <= end_early]
     mdf = convert_to_betting_rows(combo)
 
     #there might be some outliers throwing off the numbers, so let's remove the top 5% and bottom 5% of thresholds
@@ -92,41 +95,70 @@ def tuning():
         adv_profits.append([round(t, 2), aggs.loc['size', 'WAGER'], aggs.loc['sum', 'PROFIT'], round(aggs.loc['sum', 'PROFIT'] / aggs.loc['sum', 'WAGER'] * 100, 2), round(aggs.loc['size', 'WAGER'] / total_games * 100)])
     print(pd.DataFrame(adv_profits, columns = ['adv_threshold', 'games_bet', 'winnings', 'ROI', 'percent_games_bet']))
 
-# tuning()
+def tune_home_and_k():
+    '''
+    The original K Factor and Home Advantage were selected by copying the recommendations from 538 (4 and 24, respectively).
+    Those parameters were likely selected by backtesting on a much larger set of data than what we have since 2023, but 
+    we should still check if these parameters are still reasonable
+
+    UPDATE 6/7/24: based on some findings using this function and a historical analysis of games since the start of the 2022
+    season, we are updating home advantage to be 17. This implies the average home team wins 52.44% of games which closely
+    aligns with the 52.437% home win percentage observed over these years and 6484 games. Since the pandemic, home field advantage
+    in MLB has seemed to decline: https://www.washingtonpost.com/sports/2023/05/11/baseball-home-field-advantage/
+    And it's not unique to baseball: https://sports.yahoo.com/farewell-to-nfl-home-field-advantage-as-home-teams-have-a-losing-record-through-5-weeks-153759757.html
+    '''
+    latest_df = pd.read_csv(get_latest_data_filepath())
+    homes = np.arange(8, 20, 3)
+    ks = np.arange(3.5, 5.5, 0.5)
+
+    #Calculate and print out the brier score for each combination. We want brier to be LOW
+    briers = []
+    for h in tqdm(homes):
+        for k in ks:
+            this_sim, combo = sim(latest_df, k, h)
+            combo = combo.loc[~combo['HOME_PRE_PROB'].isna()]
+            combo['home_win'] = combo.apply(lambda x: 1 if x['Home_Score'] > x['Away_Score'] else 0, axis = 1)
+            combo['brier'] = (combo['HOME_PRE_PROB'] - combo['home_win'])**2
+            briers.append((h, k, combo['brier'].mean()))
+
+    print(sorted(briers, key = lambda x: x[-1]))
+
+advantage_cutoff_tuning('20240101')
+# tune_home_and_k()
 #when ADV is percentage-based
 '''
 Performance for 2023 season
-choose threshold 0.07 for 3.5% ROI and 31% bet rate
-    adv_threshold  games_bet  winnings   ROI  percent_games_bet
-0            0.01     1483.0     27.46  1.70                 67
-1            0.02     1311.0     27.10  1.92                 59
-2            0.03     1175.0      9.67  0.77                 53
-3            0.04     1047.0     21.29  1.91                 47
-4            0.05      909.0      2.91  0.30                 41
-5            0.06      797.0      4.47  0.54                 36
-6            0.07      688.0     24.69  3.47                 31
-7            0.08      592.0     16.56  2.72                 27
-8            0.09      495.0     11.84  2.34                 22
-9            0.10      424.0      8.83  2.04                 19
-10           0.11      344.0      7.38  2.10                 15
-11           0.12      280.0     11.93  4.19                 13
-12           0.13      215.0     11.69  5.37                 10
-13           0.14      162.0      7.90  4.81                  7
-14           0.15      119.0     -1.25 -1.04                  5
-15           0.16       62.0      6.03  9.65                  3
-16           0.17       30.0     -0.66 -2.18                  1
+choose threshold 0.08 for 5.2% ROI and 26% bet rate
+    adv_threshold  games_bet  winnings    ROI  percent_games_bet
+0            0.01     2042.0    -12.52  -0.57                 67
+1            0.02     1830.0     11.04   0.57                 60
+2            0.03     1612.0      0.20   0.01                 53
+3            0.04     1410.0     17.01   1.15                 46
+4            0.05     1236.0     20.39   1.59                 40
+5            0.06     1081.0     21.09   1.89                 35
+6            0.07      934.0     23.64   2.47                 30
+7            0.08      805.0     42.97   5.24                 26
+8            0.09      671.0     29.86   4.37                 22
+9            0.10      570.0     47.12   8.14                 19
+10           0.11      458.0     37.64   8.12                 15
+11           0.12      371.0     33.85   9.06                 12
+12           0.13      293.0     33.58  11.39                 10
+13           0.14      221.0      2.09   0.94                  7
+14           0.15      158.0     -2.76  -1.74                  5
+15           0.16       84.0     -9.15 -10.85                  3
+16           0.17       43.0     -9.25 -21.51                  1
 '''
 
 #when ADV is difference-based
 '''
 Performance for 2023 season
-choose threshold 0.04 for ~2.2% ROI and ~23% bet rate
+choose threshold 0.04 for 6.8% ROI and 21% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     1294.0      9.68   0.69                 58
-1            0.02     1015.0      5.24   0.48                 46
-2            0.03      734.0      4.77   0.61                 33
-3            0.04      505.0     11.57   2.20                 23
-4            0.05      296.0     -5.10  -1.67                 13
-5            0.06      148.0     -4.38  -2.89                  7
-6            0.07       16.0     -3.87 -23.55                  1
+0            0.01     1809.0     11.04   0.57                 59
+1            0.02     1352.0      5.93   0.41                 44
+2            0.03      993.0     20.98   2.03                 32
+3            0.04      652.0     45.95   6.83                 21
+4            0.05      385.0     42.76  10.83                 13
+5            0.06      176.0      8.09   4.50                  6
+6            0.07       16.0     -3.85 -23.77                  1
 '''

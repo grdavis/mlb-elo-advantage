@@ -9,7 +9,7 @@ and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
 '''
 
 K_FACTOR = 4
-HOME_ADVANTAGE = 24
+HOME_ADVANTAGE = 17 #updated from 24 on 6/7/24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
 SNAPSHOT_LOOKBACKS = [7, 30, 90]
