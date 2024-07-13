@@ -23,7 +23,12 @@ def get_info_from_final_row(row):
 		team_ml = 'NA'
 	else:
 		team_ml = team_ml.find('span', {'class': 'data-value'})
-		team_ml = 'NA' if team_ml == None else int(team_ml.text.strip(" +"))
+		if team_ml == None:
+			team_ml = 'NA' 
+		elif team_ml = 'even':
+			team_ml = 100
+		else:
+			team_ml = int(team_ml.text.strip(" +"))
 
 	ou = row.find('td', {'data-field': 'live-total'})
 	if ou == None:
@@ -44,7 +49,12 @@ def get_info_from_scheduled_row(row):
 		team_ml = 'NA'
 	else:
 		team_ml.find('span', {'class': 'data-value'})
-		team_ml = 'NA' if team_ml == None else int(team_ml.text.strip(" +"))
+		if team_ml == None:
+			team_ml = 'NA' 
+		elif team_ml = 'even':
+			team_ml = 100
+		else:
+			team_ml = int(team_ml.text.strip(" +"))
 	
 	ou = row.find('td', {'data-field': 'current-total'})
 	if ou == None:
