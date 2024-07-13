@@ -25,7 +25,7 @@ def get_info_from_final_row(row):
 		team_ml = team_ml.find('span', {'class': 'data-value'})
 		if team_ml == None:
 			team_ml = 'NA' 
-		elif team_ml = 'even':
+		elif team_ml == 'even':
 			team_ml = 100
 		else:
 			team_ml = int(team_ml.text.strip(" +"))
@@ -51,7 +51,7 @@ def get_info_from_scheduled_row(row):
 		team_ml.find('span', {'class': 'data-value'})
 		if team_ml == None:
 			team_ml = 'NA' 
-		elif team_ml = 'even':
+		elif team_ml == 'even':
 			team_ml = 100
 		else:
 			team_ml = int(team_ml.text.strip(" +"))
