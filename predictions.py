@@ -2,11 +2,11 @@ import elo
 import utils
 from datetime import datetime
 import pandas as pd
-import analysis
+from analysis import eval_recent_performance
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 ADV_THRESHOLD = .04
-ADV_PCT_THRESHOLD = .08 
+ADV_PCT_THRESHOLD = .11 #changed from .08 on 7/28/24 after more tuning adjustments to home advantage 
 ADV_TO_USE = 'ADV_PCT'
 
 def odds_needed(winp, adv_type):
@@ -60,7 +60,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
-	last_7_30_365 = (analysis.eval_recent_performance(7, ADV_TO_USE), analysis.eval_recent_performance(30, ADV_TO_USE), analysis.eval_recent_performance(365, ADV_TO_USE))
+	last_7_30_365 = (eval_recent_performance(7, ADV_TO_USE), eval_recent_performance(30, ADV_TO_USE), eval_recent_performance(365, ADV_TO_USE))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
 	ratings = clean_up_ratings(this_sim)

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 DATA_FOLDER = 'DATA/'
 DOCS_FOLDER = 'docs/'
 OUTPUTS_FOLDER = 'OUTPUTS/'
+UNIT = 1
 
 #ELOs to start the 2023 season - This is when the ELO model restarts every run
 STARTING_ELOS = { 
@@ -203,3 +204,23 @@ def table_output(df, table_title, order = None):
 	])
 	fig.update_layout(title = {'text': table_title, 'xanchor': 'center', 'x': .5})
 	fig.show()
+
+def odds_calc(x):
+    if x < 0:
+        return - x / (100 - x)
+    else:
+        return 100 / (100 + x)
+
+def wager_calc(x):
+    #wager either 1 UNIT on the underdog or enough to win 1 UNIT on the favorite
+    if x < 0:
+        return - UNIT * x / 100
+    else:
+        return UNIT
+
+def profit_calc(x):
+    #wager either 1 UNIT on the underdog or enough to win 1 UNIT on the favorite
+    if x < 0:
+        return UNIT
+    else:
+        return x / 100 * UNIT
