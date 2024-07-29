@@ -45,7 +45,7 @@ def convert_to_betting_rows(combo, adv_to_use):
 def eval_recent_performance(recent_days, adv_to_use, threshold):
     #evaluate performance of betting thresholds over recent days
     combo = assemble_results_and_predictions()
-    combo = combo.loc[combo['Date'] >= utils.shift_dstring(today_date_string(), -recent_days)]
+    combo = combo.loc[combo['Date'] >= utils.shift_dstring(utils.today_date_string(), -recent_days)]
     
     mdf = convert_to_betting_rows(combo, adv_to_use)
     total_games = mdf.shape[0] / 2 #divide by two since mdf has one row for each side of the game
