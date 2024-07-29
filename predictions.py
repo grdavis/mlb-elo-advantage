@@ -60,7 +60,8 @@ def make_predictions(this_sim, df, pred_date = None):
 	
 	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
-	last_7_30_365 = (eval_recent_performance(7, ADV_TO_USE), eval_recent_performance(30, ADV_TO_USE), eval_recent_performance(365, ADV_TO_USE))
+	t = ADV_PCT_THRESHOLD if ADV_TO_USE == 'ADV_PCT' else ADV_THRESHOLD
+	last_7_30_365 = (eval_recent_performance(7, ADV_TO_USE, t), eval_recent_performance(30, ADV_TO_USE, t), eval_recent_performance(365, ADV_TO_USE, t))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
 	ratings = clean_up_ratings(this_sim)
