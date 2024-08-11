@@ -1,57 +1,54 @@
-# MLB Elo Game Predictions for 2024-08-10 - @grdavis
+# MLB Elo Game Predictions for 2024-08-11 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 16% of games and have a -50.27% ROI over the last 7 days. ROI is -14.43% over the last 30 days and 1.26% over the last 365.
+The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 17% of games and have a -40.57% ROI over the last 7 days. ROI is -12.19% over the last 30 days and 1.63% over the last 365.
 
 | Date       | Away   | Home   |   Away WinP |   Home WinP |   Away ML |   Away Threshold |   Home ML |   Home Threshold |
 |:-----------|:-------|:-------|------------:|------------:|----------:|-----------------:|----------:|-----------------:|
-| 2024-08-10 | TEX    | NYY    |       42.25 |       57.75 |       130 |             +163 |      -154 |             -108 |
-| 2024-08-10 | TEX    | NYY    |       42.25 |       57.75 |       158 |             +163 |      -188 |             -108 |
-| 2024-08-10 | OAK    | TOR    |       42.57 |       57.43 |       124 |             +161 |      -146 |             -107 |
-| 2024-08-10 | DET    | SFG    |       45.52 |       54.48 |       188 |             +144 |      -225 |             +104 |
-| 2024-08-10 | HOU    | BOS    |       51.44 |       48.56 |       102 |             +116 |      -120 |             +129 |
-| 2024-08-10 | SDP    | FLA    |       61    |       39    |      -186 |             -122 |       156 |             +185 |
-| 2024-08-10 | ANA    | WSN    |       47.35 |       52.65 |      -108 |             +134 |      -108 |             +111 |
-| 2024-08-10 | STL    | KCR    |       45.15 |       54.85 |       114 |             +146 |      -134 |             +102 |
-| 2024-08-10 | CIN    | MIL    |       41.58 |       58.42 |       126 |             +167 |      -148 |             -111 |
-| 2024-08-10 | CLE    | MIN    |       45.66 |       54.34 |      -100 |             +143 |      -118 |             +104 |
-| 2024-08-10 | CHC    | CHW    |       65.74 |       34.26 |      -230 |             -145 |       190 |             +224 |
-| 2024-08-10 | BAL    | TBD    |       52.16 |       47.84 |      -164 |             +113 |       138 |             +132 |
-| 2024-08-10 | PHI    | ARI    |       50.12 |       49.88 |      -102 |             +121 |      -116 |             +123 |
-| 2024-08-10 | ATL    | COL    |       61.88 |       38.12 |      -194 |             -126 |       162 |             +191 |
-| 2024-08-10 | PIT    | LAD    |       40.22 |       59.78 |      -104 |             +176 |      -112 |             -117 |
-| 2024-08-10 | NYM    | SEA    |       48.07 |       51.93 |       110 |             +131 |      -130 |             +114 |
+| 2024-08-11 | ANA    | WSN    |       46.99 |       53.01 |       134 |             +136 |      -158 |             +109 |
+| 2024-08-11 | HOU    | BOS    |       51.81 |       48.19 |      -130 |             +114 |       110 |             +130 |
+| 2024-08-11 | TEX    | NYY    |       42.38 |       57.62 |       124 |             +162 |      -146 |             -108 |
+| 2024-08-11 | OAK    | TOR    |       43.02 |       56.98 |       132 |             +158 |      -156 |             -105 |
+| 2024-08-11 | SDP    | FLA    |       61.26 |       38.74 |      -200 |             -123 |       168 |             +187 |
+| 2024-08-11 | BAL    | TBD    |       52.65 |       47.35 |      -110 |             +111 |      -106 |             +134 |
+| 2024-08-11 | CIN    | MIL    |       41.28 |       58.72 |      -112 |             +169 |      -104 |             -112 |
+| 2024-08-11 | CLE    | MIN    |       46.09 |       53.91 |      -106 |             +141 |      -110 |             +106 |
+| 2024-08-11 | ATL    | COL    |       62.29 |       37.71 |      -174 |             -128 |       146 |             +194 |
+| 2024-08-11 | DET    | SFG    |       45.07 |       54.93 |       152 |             +146 |      -180 |             +102 |
+| 2024-08-11 | PHI    | ARI    |       48.84 |       51.16 |      -126 |             +127 |       108 |             +117 |
+| 2024-08-11 | PIT    | LAD    |       39.77 |       60.23 |       225 |             +179 |      -275 |             -119 |
+| 2024-08-11 | NYM    | SEA    |       47.37 |       52.63 |       114 |             +134 |      -134 |             +111 |
 
 # Team Elo Ratings
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change |   90-Day Change |
 |---:|:-------|-------------:|---------------:|----------------:|----------------:|
-|  1 | MIL    |         1547 |             12 |               7 |              10 |
-|  2 | PHI    |         1547 |              8 |             -21 |             -10 |
-|  3 | LAD    |         1544 |             -2 |              -4 |             -25 |
-|  4 | SDP    |         1543 |              9 |              23 |              14 |
-|  5 | BAL    |         1541 |              3 |              -5 |              -7 |
-|  6 | NYY    |         1539 |             -6 |               1 |               6 |
-|  7 | HOU    |         1535 |              3 |              -6 |              22 |
-|  8 | MIN    |         1531 |              2 |              -1 |               0 |
-|  9 | ARI    |         1531 |              7 |              24 |              23 |
-| 10 | ATL    |         1525 |            -18 |             -22 |             -38 |
-| 11 | NYM    |         1520 |              0 |               6 |              14 |
-| 12 | SEA    |         1518 |             -4 |             -10 |              -8 |
-| 13 | CLE    |         1515 |            -13 |             -11 |               5 |
-| 14 | CHC    |         1514 |              7 |               7 |              -9 |
-| 15 | TBD    |         1511 |             -3 |               9 |              -1 |
-| 16 | BOS    |         1510 |              2 |              -9 |               1 |
-| 17 | KCR    |         1507 |             -3 |               8 |              13 |
-| 18 | SFG    |         1505 |              8 |              14 |              24 |
-| 19 | CIN    |         1503 |              1 |               1 |              18 |
-| 20 | TEX    |         1500 |             -5 |             -17 |             -28 |
-| 21 | TOR    |         1492 |              2 |              -6 |             -11 |
-| 22 | PIT    |         1491 |             -8 |               5 |              25 |
-| 23 | STL    |         1489 |              0 |               1 |              24 |
-| 24 | DET    |         1489 |              1 |              -3 |              -3 |
-| 25 | WSN    |         1469 |              0 |              -1 |             -10 |
-| 26 | ANA    |         1466 |              8 |               9 |               1 |
-| 27 | OAK    |         1455 |             -3 |              21 |               6 |
-| 28 | FLA    |         1451 |             -4 |               7 |              -3 |
-| 29 | COL    |         1426 |             -1 |               6 |             -11 |
-| 30 | CHW    |         1386 |             -2 |             -31 |             -42 |
+|  1 | MIL    |         1548 |             15 |              11 |              13 |
+|  2 | LAD    |         1546 |             -1 |              -3 |             -25 |
+|  3 | SDP    |         1544 |              8 |              26 |              17 |
+|  4 | BAL    |         1543 |              2 |              -1 |              -3 |
+|  5 | PHI    |         1542 |              0 |             -22 |             -16 |
+|  6 | NYY    |         1539 |             -7 |              -1 |               6 |
+|  7 | HOU    |         1536 |              5 |              -7 |              21 |
+|  8 | ARI    |         1535 |             10 |              26 |              26 |
+|  9 | MIN    |         1529 |             -2 |               0 |              -2 |
+| 10 | ATL    |         1526 |            -12 |             -24 |             -38 |
+| 11 | SEA    |         1521 |              2 |              -5 |              -7 |
+| 12 | NYM    |         1518 |             -1 |               3 |              13 |
+| 13 | CLE    |         1517 |             -8 |              -7 |               3 |
+| 14 | CHC    |         1515 |              5 |               5 |              -7 |
+| 15 | KCR    |         1510 |             -2 |               7 |              19 |
+| 16 | TBD    |         1510 |             -5 |               6 |              -4 |
+| 17 | BOS    |         1509 |             -2 |              -6 |               2 |
+| 18 | SFG    |         1507 |              6 |              12 |              27 |
+| 19 | CIN    |         1502 |              4 |              -1 |              18 |
+| 20 | TEX    |         1500 |             -2 |             -15 |             -25 |
+| 21 | TOR    |         1491 |              2 |              -6 |             -14 |
+| 22 | PIT    |         1489 |             -9 |               1 |              21 |
+| 23 | DET    |         1487 |              1 |              -4 |              -6 |
+| 24 | STL    |         1486 |             -1 |               0 |              18 |
+| 25 | WSN    |         1470 |             -1 |              -3 |              -9 |
+| 26 | ANA    |         1464 |              4 |               6 |               2 |
+| 27 | OAK    |         1457 |              0 |              19 |              11 |
+| 28 | FLA    |         1450 |            -10 |               7 |              -3 |
+| 29 | COL    |         1424 |             -1 |               5 |             -15 |
+| 30 | CHW    |         1385 |             -1 |             -30 |             -43 |
