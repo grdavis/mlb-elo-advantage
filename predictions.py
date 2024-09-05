@@ -29,8 +29,8 @@ def assemble_results_and_predictions():
     #convert the ML numbers to a profit multiple and calculate how much we would have profited if we bet on one of the sides
     combo['H_WAGER'] = combo.apply(lambda x: utils.wager_calc(x['Home_ML']), axis = 1)
     combo['A_WAGER'] = combo.apply(lambda x: utils.wager_calc(x['Away_ML']), axis = 1)
-    combo['H_PROFIT'] = combo.apply(lambda x: utils.profit_calc(x['Home_ML']) if int(x['Home_Score']) > int(x['Away_Score']) else -x['H_WAGER'], axis = 1)
-    combo['A_PROFIT'] = combo.apply(lambda x: utils.profit_calc(x['Away_ML']) if int(x['Away_Score']) > int(x['Home_Score']) else -x['A_WAGER'], axis = 1)
+    combo['H_PROFIT'] = combo.apply(lambda x: utils.profit_calc(x['Home_ML'], x['H_WAGER']) if int(x['Home_Score']) > int(x['Away_Score']) else -x['H_WAGER'], axis = 1)
+    combo['A_PROFIT'] = combo.apply(lambda x: utils.profit_calc(x['Away_ML'], x['A_WAGER']) if int(x['Away_Score']) > int(x['Home_Score']) else -x['A_WAGER'], axis = 1)
 
     return combo
 

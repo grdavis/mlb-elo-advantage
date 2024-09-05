@@ -3,6 +3,7 @@ import pandas as pd
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import *
 from tqdm import tqdm
+from predictions import assemble_results_and_predictions, convert_to_betting_rows
 
 def advantage_cutoff_tuning(adv_to_use, end_early = None):
     '''
@@ -56,43 +57,81 @@ def tune_home_and_k():
 
     print(sorted(briers, key = lambda x: x[-1]))
 
-# advantage_cutoff_tuning('ADV_PCT', '2024-07-26')
+# advantage_cutoff_tuning('ADV', '2024-09-03')
 # tune_home_and_k()
+# kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'half-kelly')
 
 #when ADV is percentage-based
 '''
-Performance for 2023 through June 2024 
-choose threshold 0.11 for 10.6% ROI and 14% bet rate
+Performance for 2023 through August 2024 
+choose threshold 0.11 for 10.5% ROI and 14% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     2365.0     -6.87  -0.27                 65
-1            0.02     2124.0    -10.61  -0.47                 59
-2            0.03     1873.0    -19.47  -0.98                 52
-3            0.04     1636.0     14.89   0.87                 45
-4            0.05     1427.0     14.72   0.99                 39
-5            0.06     1241.0      2.69   0.21                 34
-6            0.07     1077.0     13.00   1.18                 30
-7            0.08      906.0     31.71   3.43                 25
-8            0.09      762.0     27.97   3.60                 21
-9            0.10      632.0     36.98   5.76                 17
-10           0.11      516.0     55.47  10.63                 14
-11           0.12      414.0     41.82  10.02                 11
-12           0.13      320.0     24.64   7.65                  9
-13           0.14      245.0     18.93   7.69                  7
-14           0.15      171.0     -6.88  -4.00                  5
-15           0.16       96.0     10.14  10.49                  3
-16           0.17       39.0      9.10  23.13                  1
+0            0.01     2650.0    -26.91  -0.94                 65
+1            0.02     2373.0    -35.30  -1.39                 58
+2            0.03     2089.0    -36.25  -1.64                 51
+3            0.04     1815.0      5.93   0.31                 44
+4            0.05     1587.0     14.15   0.86                 39
+5            0.06     1381.0      0.84   0.06                 34
+6            0.07     1198.0     10.71   0.87                 29
+7            0.08     1004.0     26.12   2.55                 25
+8            0.09      836.0     22.94   2.69                 20
+9            0.10      693.0     38.87   5.52                 17
+10           0.11      562.0     59.50  10.46                 14
+11           0.12      444.0     44.67   9.96                 11
+12           0.13      341.0     24.13   7.02                  8
+13           0.14      259.0     16.20   6.22                  6
+14           0.15      182.0     -8.61  -4.70                  4
+15           0.16       99.0      9.17   9.20                  2
+16           0.17       38.0     12.13  31.63                  1
 '''
 
 #when ADV is difference-based
 '''
 Performance for 2023 through June 2024
-choose threshold 0.04 for 3.1% ROI and 21% bet rate
+choose threshold 0.05 for 5.4% ROI and 12% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     2100.0    -24.67  -1.10                 58
-1            0.02     1579.0    -10.77  -0.64                 44
-2            0.03     1125.0      9.46   0.81                 31
-3            0.04      745.0     23.79   3.09                 21
-4            0.05      433.0     24.66   5.54                 12
-5            0.06      201.0     12.97   6.32                  6
-6            0.07       25.0     -3.64 -14.17                  1
+0            0.01     2348.0    -53.84  -2.14                 57
+1            0.02     1759.0    -26.73  -1.44                 43
+2            0.03     1248.0      1.89   0.15                 30
+3            0.04      817.0     15.98   1.89                 20
+4            0.05      474.0     26.42   5.42                 12
+5            0.06      214.0     14.23   6.50                  5
 '''
+
+def kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'kelly'):
+    #The Kelly Criterion is a wagering methodology to maximize the long-term expected geometric growth rate of a bank-roll
+    #'kelly': wager according to kelly criterion recommendation (ROLL * (win_p - (loss_p / profit_multiple)))
+    #'half-kelly': wager 50% of the kelly criterion recommendation (ROLL * 0.5 * (win_p - (loss_p / profit_multiple)))
+    #The goal of this function is to observe the historical performance of this betting strategy when combined with a betting advantage selection strategy
+    #
+    #FINDINGS: we don't see any combinations of Kelly/Half-Kelley and any threshold that result in positive ROI like our flat betting scheme does (above)
+    k_map = {'kelly': 1, 'half-kelly': 0.5}
+    combo = assemble_results_and_predictions()
+    combo['H_P_MULT'] = combo.apply(lambda x: - 100 / x['Home_ML'] if x['Home_ML'] < 0 else x['Home_ML'] / 100, axis = 1)
+    combo['A_P_MULT'] = combo.apply(lambda x: - 100 / x['Away_ML'] if x['Away_ML'] < 0 else x['Away_ML'] / 100, axis = 1)
+
+    adv_profits = []
+    for adv_t in np.arange(.01, .21, .01):
+        triggered_games = combo.loc[(combo[f'H_{adv_to_use}'] >= adv_t) | (combo[f'A_{adv_to_use}'] >= adv_t)]
+        wagered, profited = [], []
+        roll = 1000
+        for index, row in triggered_games.iterrows():
+            ka = (row['AWAY_PRE_PROB'] - row['HOME_PRE_PROB'] / row['A_P_MULT']) * k_map[wager_type]
+            kh = (row['HOME_PRE_PROB'] - row['AWAY_PRE_PROB'] / row['H_P_MULT']) * k_map[wager_type]
+            if row[f'A_{adv_to_use}'] >= adv_t:
+                #proceed with betting on Away
+                w = ka * roll
+                p = w * row['A_P_MULT'] if int(row['Away_Score']) > int(row['Home_Score']) else - w
+            else:
+                #proceed with betting on Home
+                w = kh * roll
+                p = w * row['H_P_MULT'] if int(row['Away_Score']) < int(row['Home_Score']) else - w
+            roll += p
+            wagered.append(w)
+            profited.append(p)
+
+        triggered_games['K_WAGERED'] = wagered
+        triggered_games['K_PROFITED'] = profited
+        aggs = triggered_games[triggered_games['K_WAGERED'] > 0][['K_WAGERED', 'K_PROFITED']].agg(['size', 'sum'])
+        adv_profits.append([adv_t, aggs.loc['size', 'K_WAGERED'], aggs.loc['sum', 'K_PROFITED'], round(aggs.loc['sum', 'K_PROFITED'] / aggs.loc['sum', 'K_WAGERED'] * 100, 2), round(aggs.loc['size', 'K_WAGERED'] / combo.shape[0] * 100)])
+    print(pd.DataFrame(adv_profits, columns = ['trigger_threshold', 'games_bet', 'winnings', 'ROI', 'percent_games_bet']))    

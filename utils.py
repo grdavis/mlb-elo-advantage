@@ -212,15 +212,16 @@ def odds_calc(x):
         return 100 / (100 + x)
 
 def wager_calc(x):
-    #wager either 1 UNIT on the underdog or enough to win 1 UNIT on the favorite
-    if x < 0:
-        return - UNIT * x / 100
-    else:
-        return UNIT
+	#wager enough to win a UNIT on favorites; wager a UNIT on underdogs
+    if x < 0: 
+    	return - UNIT * x / 100
+    else: 
+    	return UNIT
 
-def profit_calc(x):
-    #wager either 1 UNIT on the underdog or enough to win 1 UNIT on the favorite
+def profit_calc(x, wager):
+	#x is the ML odds; wager is the amount wagered on those odds
+	#return the amount of profit earned from this wager on those odds
     if x < 0:
-        return UNIT
+        return - 100 / x * wager
     else:
-        return x / 100 * UNIT
+        return x / 100 * wager
