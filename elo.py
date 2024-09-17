@@ -12,7 +12,7 @@ K_FACTOR = 4
 HOME_ADVANTAGE = 15 #updated from 24 on 6/7/24, updated from 17 on 7/28/24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
-SNAPSHOT_LOOKBACKS = [7, 30, 90]
+SNAPSHOT_LOOKBACKS = [7, 30]
 
 class Team():
 	'''
@@ -22,6 +22,10 @@ class Team():
 		self.name = name
 		self.elo = starting_elo
 		self.day_lag_snapshots = {} #maps a number of days ago to rating on that day (e.g. {7: 1500} says the team had a 1500 rating 7 days ago)
+		self.division = utils.TEAM_DIVISIONS[name]
+		self.league = self.division[:2]
+		self.season_wins = 0
+		self.season_losses = 0
 
 	def update_elo(self, change):
 		self.elo = max(0, self.elo + change)
@@ -46,12 +50,19 @@ class ELO_Sim():
 		self.teams[winner].update_elo(delta)
 		self.teams[loser].update_elo(-delta)
 
+		#Also update the wins and losses counts for each team
+		self.teams[winner].season_wins += 1
+		self.teams[loser].season_losses += 1
+
 	def predict_home_winp(self, home_team, away_team):
 		elo_margin = self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team)
 		return 1 / (1 + 10**(-elo_margin/400))
 
 	def season_reset(self):
-		for team in self.teams: self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + 1500 * (1 - SEASON_RESET_MULT)
+		for team in self.teams: 
+			self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + 1500 * (1 - SEASON_RESET_MULT)
+			self.teams[team].season_wins = 0
+			self.teams[team].season_losses = 0
 
 	def take_snapshots(self, val):
 		#snapshot current elo for all teams - snapshot value stored in the Team object

@@ -108,6 +108,39 @@ SO_TEAM_MAP = {
 	'Guardians': 'CLE'
 }
 
+TEAM_DIVISIONS = {
+	'NYY': 'AL East',
+	'SFG': 'NL West',
+	'WSN': 'NL East',
+	'ATL': 'NL East',
+	'BOS': 'AL East',
+	'BAL': 'AL East',
+	'CHC': 'NL Central',
+	'MIL': 'NL Central',
+	'TBD': 'AL East',
+	'DET': 'AL Central',
+	'TEX': 'AL West',
+	'PHI': 'NL East',
+	'CIN': 'NL Central',
+	'PIT': 'NL Central',
+	'FLA': 'NL East',
+	'NYM': 'NL East',
+	'KCR': 'AL Central',
+	'MIN': 'AL Central',
+	'STL': 'NL Central',
+	'TOR': 'AL East',
+	'HOU': 'AL West',
+	'CHW': 'AL Central',
+	'SDP': 'NL West',
+	'COL': 'NL West',
+	'OAK': 'AL West',
+	'ANA': 'AL West',
+	'LAD': 'NL West',
+	'ARI': 'NL West',
+	'SEA': 'AL West',
+	'CLE': 'AL Central'
+}
+
 def date_to_string(obj): return obj.strftime('%Y-%m-%d')
 
 def today_date_string(): return date_to_string(datetime.today())
@@ -148,13 +181,14 @@ def save_markdown_df(predictions, ratings, date_str, performance):
 	r7, b7 = performance[0]
 	r30, r365 = performance[1][0], performance[2][0]
 	with open(f"{DOCS_FOLDER}/index.md", 'w') as md:
-		md.write(f'# MLB Elo Game Predictions for {date_str} - @grdavis\n')
+		md.write(f'# MLB Elo Game Predictions and Playoff Probabilities for {date_str} - @grdavis\n')
 		md.write("Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.\n\n")
 		md.write("The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. ")
 		md.write(f"For transparency, these recommendations have been triggered for {b7}% of games and have a {r7}% ROI over the last 7 days. ROI is {r30}% over the last 30 days and {r365}% over the last 365.\n\n")
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
+		md.write("This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 10,000 simulations of the rest of the regular season and playoffs")
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
 

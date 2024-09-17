@@ -2,6 +2,7 @@ import elo
 import utils
 from datetime import datetime
 import pandas as pd
+from season_predictions import get_playoff_probs
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
 ADV_THRESHOLD = .04
@@ -73,7 +74,13 @@ def odds_needed(winp, adv_type):
 	else:
 		return f"-{int(round((100 * original_implied) / (1 - original_implied), 0))}"
 
-def clean_up_ratings(this_sim):
+def clean_up_ratings(this_sim, game_data):
+	'''
+	This function returns a DataFrame with one row for each team displaying their current Elo rating and how it has changed
+	in the last 7 and 30. In addition, it shows the teams chances of making the playoffs, winning the division, reaching the
+	divisional round, reaching the championship round, reaching the WS, and winning the WS. These probabilities are achieved
+	by simulating all the remaining games and the playoffs 10000 times
+	'''
 	out_data = []
 	for team in this_sim.teams:
 		this_row = [team, round(this_sim.get_elo(team))]
@@ -81,7 +88,9 @@ def clean_up_ratings(this_sim):
 		out_data.append(this_row + [round(this_row[-1] - snap) for snap in snaps])
 	snap_col_names = [f'{i}-Day Change' for i in elo.SNAPSHOT_LOOKBACKS]
 	out_data = sorted(out_data, key = lambda x: x[1], reverse = True)
-	return pd.DataFrame(out_data, columns = ['Team', 'Elo Rating'] + snap_col_names)
+	ratings_df = pd.DataFrame(out_data, columns = ['Team', 'Elo Rating'] + snap_col_names)
+	season_probs = get_playoff_probs(this_sim, game_data)
+	return pd.merge(ratings_df, season_probs, on = 'Team', how = 'inner')
 
 def make_predictions(this_sim, df, pred_date = None):
 	'''
@@ -109,7 +118,7 @@ def make_predictions(this_sim, df, pred_date = None):
 	last_7_30_365 = (eval_recent_performance(7, ADV_TO_USE, t), eval_recent_performance(30, ADV_TO_USE, t), eval_recent_performance(365, ADV_TO_USE, t))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
-	ratings = clean_up_ratings(this_sim)
+	ratings = clean_up_ratings(this_sim, df)
 	utils.save_markdown_df(output_df, ratings, pred_date, last_7_30_365)
 
 def main():
