@@ -188,7 +188,7 @@ def save_markdown_df(predictions, ratings, date_str, performance):
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
-		md.write("This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 10,000 simulations of the rest of the regular season and playoffs")
+		md.write("This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 10,000 simulations of the rest of the regular season and playoffs\n\n")
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
 
