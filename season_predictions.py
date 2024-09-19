@@ -133,7 +133,8 @@ def get_playoff_probs(this_sim, game_data):
 	N_SIMS = 50000
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
-	remaining_games = game_data[game_data['Home_Score'].isna()]
+	remaining_games = game_data[game_data['Home_Score'] == '']
+	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
 
 	#dictionaries mapping team name to counts of occurrences in simulations
 	playoffs = {}
