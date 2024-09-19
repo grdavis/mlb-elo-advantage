@@ -126,7 +126,7 @@ def main():
 	This method leverages elo.py to get the latest old data, scrape to update, and get the odds for upcoming games
 	Using that updated dataframe, this script predicts games today by default
 	'''
-	this_sim, df = elo.main(scrape = False, save_scrape = False, save_new_scrape = False, print_ratings = False)
+	this_sim, df = elo.main(scrape = True, save_scrape = True, save_new_scrape = False, print_ratings = False)
 	make_predictions(this_sim, df, pred_date = utils.date_to_string(datetime.today()))
 	utils.clean_up_old_outputs_and_data()
 
