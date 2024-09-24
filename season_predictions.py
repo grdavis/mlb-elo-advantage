@@ -3,8 +3,8 @@ from random import random
 from tqdm import tqdm
 import elo
 
-def sim_winner(this_sim, home, away):
-	home_winp = this_sim.predict_home_winp(home, away)
+def sim_winner(this_sim, home, away, is_playoffs):
+	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
 	return home if random() < home_winp else away
 
 def finish_season(this_sim, remaining_games):
@@ -12,7 +12,7 @@ def finish_season(this_sim, remaining_games):
 	Go through every game in remaining_games, predict the outcome and update the wins and losses in the simulation object
 	'''
 	for index, row in remaining_games.iterrows():
-		winner = sim_winner(this_sim, row['Home'], row['Away'])
+		winner = sim_winner(this_sim, row['Home'], row['Away'], False)
 		loser = row['Home'] if winner == row['Away'] else row['Away']
 		this_sim.teams[winner].season_wins += 1
 		this_sim.teams[loser].season_losses += 1
@@ -27,9 +27,9 @@ def sim_series(this_sim, home, away, form):
 	win_dict = {home: 0, away: 0}
 	for game in form:
 		if game == 'h':
-			win_dict[sim_winner(this_sim, home, away)] += 1
+			win_dict[sim_winner(this_sim, home, away, True)] += 1
 		else:
-			win_dict[sim_winner(this_sim, away, home)] += 1
+			win_dict[sim_winner(this_sim, away, home, True)] += 1
 
 		if win_dict[home] == wins_needed: return home
 		elif win_dict[away] == wins_needed: return away

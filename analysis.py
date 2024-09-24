@@ -42,8 +42,8 @@ def tune_home_and_k():
     And it's not unique to baseball: https://sports.yahoo.com/farewell-to-nfl-home-field-advantage-as-home-teams-have-a-losing-record-through-5-weeks-153759757.html
     '''
     latest_df = pd.read_csv(get_latest_data_filepath())
-    homes = np.arange(14, 18, 1)
-    ks = np.arange(3.5, 5.6, 0.5)
+    homes = np.arange(15, 16, 1)
+    ks = np.arange(3, 4.5, 0.5)
 
     #Calculate and print out the brier score for each combination. We want brier to be LOW
     briers = []
@@ -57,10 +57,11 @@ def tune_home_and_k():
 
     print(sorted(briers, key = lambda x: x[-1]))
 
-# advantage_cutoff_tuning('ADV', '2024-09-03')
 # tune_home_and_k()
-# kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'half-kelly')
+#games through 9/23/24, brier = .243769
 
+# kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'half-kelly')
+# advantage_cutoff_tuning('ADV', '2024-09-03')
 #when ADV is percentage-based
 '''
 Performance for 2023 through August 2024 

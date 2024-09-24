@@ -9,6 +9,8 @@ and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
 '''
 
 K_FACTOR = 4
+PLAYOFF_K_EXTRA = 2 #gets added to K_FACTOR when game is a playoff game
+PLAYOFF_MARGIN_MULT = 4/3 #elo margin multiplied by this if a playoff game
 HOME_ADVANTAGE = 15 #updated from 24 on 6/7/24, updated from 17 on 7/28/24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
@@ -54,8 +56,9 @@ class ELO_Sim():
 		self.teams[winner].season_wins += 1
 		self.teams[loser].season_losses += 1
 
-	def predict_home_winp(self, home_team, away_team):
-		elo_margin = self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team)
+	def predict_home_winp(self, home_team, away_team, is_playoffs):
+		margin_mult = 1 if not is_playoffs else PLAYOFF_MARGIN_MULT
+		elo_margin = (self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team)) * margin_mult
 		return 1 / (1 + 10**(-elo_margin/400))
 
 	def season_reset(self):
@@ -102,12 +105,16 @@ def step_elo(this_sim, row, k_factor, home_adv):
 	pre_home = this_sim.get_elo(home)
 	pre_away = this_sim.get_elo(away)
 
+	is_playoffs = True if row['Date'][5:7] in ['10', '11'] else False
+	k_factor = k_factor if not is_playoffs else k_factor + PLAYOFF_K_EXTRA
+	margin_mult = 1 if not is_playoffs else PLAYOFF_MARGIN_MULT
+
 	#add the home advantage to whichever side is home
 	Welo_0, Lelo_0 = this_sim.get_elo(winner), this_sim.get_elo(loser)
 	if winner == home: Welo_0 += home_adv
 	else: Lelo_0 += home_adv
 	
-	elo_margin = Welo_0 - Lelo_0 #winner minus loser elo
+	elo_margin = (Welo_0 - Lelo_0) * margin_mult #winner minus loser elo multipled by extra margin if playoffs
 	w_winp = 1 / (1 + 10**(-elo_margin/400))
 	
 	MoV = winnerScore - loserScore #how much did winner win by
