@@ -109,7 +109,7 @@ def make_predictions(this_sim, df, pred_date = None):
 			#if prediction date specified, skip over all dates not equal to the prediction date
 			if row['Date'] != pred_date: continue
 		is_playoffs = True if row['Date'][5:7] in ['10', '11'] else False
-		winph = this_sim.predict_home_winp(row['Home'], row['Away'])
+		winph = this_sim.predict_home_winp(row['Home'], row['Away'], is_playoffs)
 		preds.append([row['Date'], row['Away'], row['Home'], round(100-winph*100, 2), round(100*winph, 2), 
 					row['Away_ML'], odds_needed(1 - winph, ADV_TO_USE), row['Home_ML'], odds_needed(winph, ADV_TO_USE)])
 	
