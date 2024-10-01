@@ -90,7 +90,13 @@ def step_elo(this_sim, row, k_factor, home_adv):
 		home pre-game win probability, away pre-game win probability
 	'''
 	home, away = row['Home'], row['Away']
-	homeScore, awayScore = int(row['Home_Score']), int(row['Away_Score'])
+	try:
+		homeScore, awayScore = int(row['Home_Score']), int(row['Away_Score'])
+	except ValueError:
+		print('No score in the data for this game. Exiting process...')
+		print(row)
+		exit()
+
 	winner = home if homeScore > awayScore else away
 	loser = home if awayScore > homeScore else away
 	winnerScore = homeScore if homeScore > awayScore else awayScore

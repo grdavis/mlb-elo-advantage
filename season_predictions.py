@@ -17,19 +17,24 @@ def finish_season(this_sim, remaining_games):
 		this_sim.teams[winner].season_wins += 1
 		this_sim.teams[loser].season_losses += 1
 
-def sim_series(this_sim, home, away, form):
+def sim_series(this_sim, home, home_wins, away, away_wins, form):
 	'''
-	Simulates a playoff series between 'home' and 'away' with games in 'form' order and returns a winner.
+	Simulates a playoff series between 'home' and 'away' with games in 'form' order and returns a winner. Also specify
+	the current score of the series with home_wins and away_wins, so we can predict the outcome of a series in progress
 	form: a string specifying where games are played if the series goes the full length
 		e.g. 'hhaah' will be two games at 'home', two at 'away', then 1 back at 'home' (if the series goes all 5 games)
 	'''
 	wins_needed = len(form) // 2 + 1
-	win_dict = {home: 0, away: 0}
-	for game in form:
+	if home_wins == wins_needed: return home
+	if away_wins == wins_needed: return away
+	win_dict = {home: home_wins, away: away_wins}
+
+	start_index = home_wins + away_wins
+	for game in form[start_index:]:
 		if game == 'h':
-			win_dict[sim_winner(this_sim, home, away, True)] += 1
+			win_dict[sim_winner(this_sim, home, away, is_playoffs = True)] += 1
 		else:
-			win_dict[sim_winner(this_sim, away, home, True)] += 1
+			win_dict[sim_winner(this_sim, away, home, is_playoffs = True)] += 1
 
 		if win_dict[home] == wins_needed: return home
 		elif win_dict[away] == wins_needed: return away
@@ -74,53 +79,73 @@ def setup_playoffs(this_sim):
 
 	#list of 16 teams where pairs of two play each other first round:
 	#	NL1, NL1, NL4, NL5, NL2, NL2, NL3, NL6, AL1, AL1, AL4, AL5, AL2, AL2, AL3, AL6
-	wc_round = [divw['NL'][0], 
-					divw['NL'][0], 
-					wcs['NL'][0],
-					wcs['NL'][1],
-					divw['NL'][1],
-					divw['NL'][1],
-					divw['NL'][2],
-					wcs['NL'][2],
-					divw['AL'][0], 
-					divw['AL'][0], 
-					wcs['AL'][0],
-					wcs['AL'][1],
-					divw['AL'][1],
-					divw['AL'][1],
-					divw['AL'][2],
-					wcs['AL'][2]]
+	wc_round = [(divw['NL'][0], 0), 
+					(divw['NL'][0], 0),
+					(wcs['NL'][0], 0),
+					(wcs['NL'][1], 0),
+					(divw['NL'][1], 0),
+					(divw['NL'][1], 0),
+					(divw['NL'][2], 0),
+					(wcs['NL'][2], 0),
+					(divw['AL'][0], 0),
+					(divw['AL'][0], 0),
+					(wcs['AL'][0], 0),
+					(wcs['AL'][1], 0),
+					(divw['AL'][1], 0),
+					(divw['AL'][1], 0),
+					(divw['AL'][2], 0),
+					(wcs['AL'][2], 0)]
+	div_round = []
+	league_round = []
+	ws_round = []
+
+	is_current_playoffs = this_sim.date >= '2024-09-30'
+	if is_current_playoffs:
+		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
+		divw = {'AL': ['NYY', 'CLE', 'HOU'], 'NL': ['LAD', 'PHI', 'MIL']}
+		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 0), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 0), ('NYM', 0), 
+					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 0), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 0)]
+		
+		#will define each of these as the 2024 playoffs go on
+		# div_round = None
+		# league_round = None
+		# ws_round = None
 
 	returns = [divw, wcs]
 	#simulate making it to divisional round
-	div_round = []
-	while len(wc_round) >= 2:
-		team1, team2 = wc_round.pop(0), wc_round.pop(0)
-		div_round.append(sim_series(this_sim, team1, team2, 'hhh'))
-	returns.append(div_round[:])
+	if div_round == []:
+		while len(wc_round) >= 2:
+			team1, wins1 = wc_round.pop(0)
+			team2, wins2 = wc_round.pop(0)
+			div_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhh'), 0))
+		returns.append(div_round[:])
 
 	#simulate making it to the League Championship Round
-	league_round = []
-	while len(div_round) >= 2:
-		team1, team2 = div_round.pop(0), div_round.pop(0)
-		league_round.append(sim_series(this_sim, team1, team2, 'hhaah'))
-	returns.append(league_round[:])
+	if league_round == []:
+		while len(div_round) >= 2:
+			team1, wins1 = div_round.pop(0)
+			team2, wins2 = div_round.pop(0) 
+			league_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaah'), 0))
+		returns.append(league_round[:])
 
 	#simulate making it to the WS
-	ws_round = []
-	while len(league_round) >= 2:
-		team1, team2 = league_round.pop(0), league_round.pop(0)
-		ws_round.append(sim_series(this_sim, team1, team2, 'hhaaahh'))
-	returns.append(ws_round)
+	if ws_round == []:
+		while len(league_round) >= 2:
+			team1, wins1 = league_round.pop(0)
+			team2, wins2 = league_round.pop(0)
+			ws_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'), 0))
+		returns.append(ws_round)
 
-	#figure out home team in WS
-	if rankings[ws_round[0]] < rankings[ws_round[1]]:
-		team1, team2 = ws_round[0], ws_round[1]
+	#figure out home team in WS if not specified already
+	if ws_round != None or rankings[ws_round[0]] < rankings[ws_round[1]]:
+		team1, wins1 = ws_round[0]
+		team2, wins2 = ws_round[1]
 	else:
-		team2, team1 = ws_round[0], ws_round[1]
+		team2, wins2 = ws_round[0] 
+		team1, wins1 = ws_round[1]
 
 	#simulate WS winner
-	returns.append(sim_series(this_sim, team1, team2, 'hhaaahh'))
+	returns.append(sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'))
 
 	return returns
 
@@ -161,9 +186,9 @@ def get_playoff_probs(this_sim, game_data):
 		for league in outcomes[1]:
 			for team in outcomes[1][league]:
 				playoffs[team] = playoffs.get(team, 0) + 1
-		for team in outcomes[2]: divisional[team] = divisional.get(team, 0) + 1
-		for team in outcomes[3]: championship[team] = championship.get(team, 0) + 1
-		for team in outcomes[4]: world_series[team] = world_series.get(team, 0) + 1
+		for team, wins in outcomes[2]: divisional[team] = divisional.get(team, 0) + 1
+		for team, wins in outcomes[3]: championship[team] = championship.get(team, 0) + 1
+		for team, wins in outcomes[4]: world_series[team] = world_series.get(team, 0) + 1
 		ws_winner[outcomes[5]] = ws_winner.get(outcomes[-1], 0) + 1
 
 	for team in this_sim.teams: playoffs[team] = playoffs.get(team, 0)
@@ -171,3 +196,7 @@ def get_playoff_probs(this_sim, game_data):
 	outcomes_df.columns = ['Team', 'Playoffs', 'Win Division', 'Reach Div. Rd.', 'Reach CS', 'Reach WS', 'Win WS']
 	outcomes_df.iloc[:, 1:] = (outcomes_df.iloc[:, 1:] / N_SIMS).applymap('{:.2%}'.format)
 	return outcomes_df
+
+#Example Testing Query
+# this_sim, df = elo.main(scrape = False, save_scrape = False, save_new_scrape = False, print_ratings = False)
+# print(get_playoff_probs(this_sim, df))
