@@ -1,31 +1,35 @@
 # MLB Elo Game Predictions and Playoff Probabilities for 2024-10-02 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 23% of games and have a 15.26% ROI over the last 7 days. ROI is -13.04% over the last 30 days and -0.32% over the last 365.
+The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 23% of games and have a 8.5% ROI over the last 7 days. ROI is -14.16% over the last 30 days and -0.52% over the last 365.
 
-| Date   | Away   | Home   | Away WinP   | Home WinP   | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
-|--------|--------|--------|-------------|-------------|-----------|------------------|-----------|------------------|
+| Date       | Away   | Home   |   Away WinP |   Home WinP |   Away ML |   Away Threshold |   Home ML |   Home Threshold |
+|:-----------|:-------|:-------|------------:|------------:|----------:|-----------------:|----------:|-----------------:|
+| 2024-10-02 | DET    | HOU    |       42.71 |       57.29 |       162 |             +160 |      -200 |             -107 |
+| 2024-10-02 | KCR    | BAL    |       45.2  |       54.8  |       125 |             +146 |      -150 |             +103 |
+| 2024-10-02 | NYM    | MIL    |       46.62 |       53.38 |      -101 |             +138 |      -118 |             +108 |
+| 2024-10-02 | ATL    | SDP    |       44.72 |       55.28 |      -119 |             +148 |       100 |             +101 |
 
 # Team Elo Ratings
 This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 50,000 simulations of the rest of the regular season and playoffs
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | LAD    |         1563 |              8 |               4 | 100.00%    | 100.00%        | 100.00%          | 56.38%     | 34.74%     | 22.89%   |
-|  2 | SDP    |         1551 |             -2 |               8 | 100.00%    | 0.00%          | 78.91%           | 34.75%     | 19.57%     | 11.89%   |
-|  3 | MIL    |         1548 |              4 |              -8 | 100.00%    | 100.00%        | 30.68%           | 16.35%     | 7.23%      | 4.31%    |
-|  4 | HOU    |         1546 |              3 |              -5 | 100.00%    | 100.00%        | 34.03%           | 19.64%     | 11.26%     | 5.55%    |
-|  5 | ATL    |         1545 |              1 |               9 | 100.00%    | 0.00%          | 21.09%           | 8.87%      | 4.87%      | 2.80%    |
-|  6 | ARI    |         1542 |             -1 |              -4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  7 | NYM    |         1536 |             -3 |              12 | 100.00%    | 0.00%          | 69.32%           | 34.13%     | 13.85%     | 7.76%    |
-|  8 | PHI    |         1536 |            -10 |              -9 | 100.00%    | 100.00%        | 100.00%          | 49.52%     | 19.74%     | 10.75%   |
-|  9 | NYY    |         1535 |             -1 |               5 | 100.00%    | 100.00%        | 100.00%          | 58.45%     | 32.17%     | 13.57%   |
+|  1 | LAD    |         1563 |              8 |               4 | 100.00%    | 100.00%        | 100.00%          | 55.02%     | 33.68%     | 22.22%   |
+|  2 | SDP    |         1554 |              1 |              11 | 100.00%    | 0.00%          | 79.66%           | 36.61%     | 21.10%     | 13.25%   |
+|  3 | MIL    |         1543 |             -1 |             -13 | 100.00%    | 100.00%        | 28.30%           | 14.77%     | 6.12%      | 3.66%    |
+|  4 | HOU    |         1543 |              0 |              -8 | 100.00%    | 100.00%        | 33.12%           | 18.84%     | 10.51%     | 4.80%    |
+|  5 | ARI    |         1542 |             -1 |              -4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  6 | NYM    |         1541 |              2 |              17 | 100.00%    | 0.00%          | 71.70%           | 36.48%     | 15.24%     | 8.57%    |
+|  7 | ATL    |         1541 |             -3 |               5 | 100.00%    | 0.00%          | 20.34%           | 8.37%      | 4.39%      | 2.46%    |
+|  8 | PHI    |         1536 |            -10 |              -9 | 100.00%    | 100.00%        | 100.00%          | 48.75%     | 19.47%     | 10.61%   |
+|  9 | NYY    |         1535 |             -1 |               5 | 100.00%    | 100.00%        | 100.00%          | 58.34%     | 32.23%     | 13.94%   |
 | 10 | SEA    |         1533 |              4 |              22 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 11 | CHC    |         1527 |              1 |              -2 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 12 | BAL    |         1523 |              5 |             -11 | 100.00%    | 0.00%          | 30.97%           | 14.29%     | 7.21%      | 2.80%    |
-| 13 | CLE    |         1521 |             -3 |               4 | 100.00%    | 100.00%        | 100.00%          | 48.96%     | 22.89%     | 8.48%    |
-| 14 | DET    |         1517 |             -5 |              11 | 100.00%    | 0.00%          | 65.97%           | 31.40%     | 14.23%     | 5.10%    |
-| 15 | KCR    |         1509 |              2 |              -1 | 100.00%    | 0.00%          | 69.03%           | 27.26%     | 12.22%     | 4.09%    |
+| 12 | BAL    |         1521 |              3 |             -13 | 100.00%    | 0.00%          | 29.86%           | 13.03%     | 6.41%      | 2.39%    |
+| 13 | CLE    |         1521 |             -3 |               4 | 100.00%    | 100.00%        | 100.00%          | 48.60%     | 22.85%     | 8.28%    |
+| 14 | DET    |         1520 |             -2 |              14 | 100.00%    | 0.00%          | 66.88%           | 32.56%     | 15.16%     | 5.56%    |
+| 15 | KCR    |         1511 |              4 |               1 | 100.00%    | 0.00%          | 70.14%           | 28.64%     | 12.83%     | 4.26%    |
 | 16 | TBD    |         1508 |              1 |               6 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 17 | SFG    |         1505 |             -4 |              11 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 18 | BOS    |         1498 |             -2 |              -2 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
