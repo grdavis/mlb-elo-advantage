@@ -103,8 +103,8 @@ def setup_playoffs(this_sim):
 	if is_current_playoffs:
 		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
 		divw = {'AL': ['NYY', 'CLE', 'HOU'], 'NL': ['LAD', 'PHI', 'MIL']}
-		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 1), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 0), ('NYM', 1), 
-					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 1), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 1)]
+		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 2), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 1), ('NYM', 1), 
+					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 2), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 2)]
 		
 		#will define each of these as the 2024 playoffs go on
 		# div_round = None
