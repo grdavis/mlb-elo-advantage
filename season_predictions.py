@@ -103,7 +103,7 @@ def setup_playoffs(this_sim):
 	if is_current_playoffs:
 		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
 		divw = {'AL': ['NYY', 'CLE', 'HOU'], 'NL': ['LAD', 'PHI', 'MIL']}
-		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 2), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 1), ('NYM', 1), 
+		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 2), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 1), ('NYM', 2), 
 					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 2), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 2)]
 		
 		#will define each of these as the 2024 playoffs go on
@@ -158,7 +158,8 @@ def get_playoff_probs(this_sim, game_data):
 	N_SIMS = 50000
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
-	remaining_games = game_data[game_data['Home_Score'].isnull() | (game_data['Home_Score'] == '')]
+	non_playoffs = game_data[game_data['Date'] < '2024-10-01']
+	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')]
 	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
 
 	#dictionaries mapping team name to counts of occurrences in simulations

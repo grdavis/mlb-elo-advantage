@@ -106,39 +106,44 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	print(f'Scraping schedule for games on or after {on_or_after}...')
 	all_data = []
 	data = requests.get(SCHEDULE_URL).content
-	section_content = BeautifulSoup(data,'html.parser').find('div', {'class': 'section_content'})
-	sections = section_content.find_all("div")
-	for section in sections:
-		date = section.find('h3').text
-		if date == "Today's Games":
-			date = date_to_string(datetime.today())
-		else:
-			date = date_to_string(datetime.strptime(date[date.find(',')+2:], '%B %d, %Y'))
-		
-		#don't bother re-collecting data we already have
-		if date < on_or_after: continue
-		
-		rows = section.find_all("p")
-		for row in rows:
-			this_row_contents = row.text
-			this_row_contents = this_row_contents.split('\n')[1:-2]
-			if len(this_row_contents) == 6: 
-				#future games
-				all_data.append([date,
-					BR_TEAM_MAP[this_row_contents[4].strip(' ')],
-					BR_TEAM_MAP[this_row_contents[1]],
-					'', ''])
-			elif len(this_row_contents) == 5:
-				#games already occurred
-				all_data.append([date,
-					BR_TEAM_MAP[this_row_contents[3].strip(' ')], 
-					BR_TEAM_MAP[this_row_contents[0].strip(' ')], 
-					this_row_contents[4].strip(' ').strip('(').strip(')'),
-					this_row_contents[1].strip(' ').strip('(').strip(')')
-					])
+	section_content = BeautifulSoup(data,'html.parser').find_all('div', {'class': 'section_content'})
+	#there should be one section_content for regular season and one for post-season
+	for sc in section_content:
+		sections = sc.find_all("div")
+		for section in sections:
+			date = section.find('h3').text
+			if date == "Today's Games":
+				date = date_to_string(datetime.today())
+			else:
+				date = date_to_string(datetime.strptime(date[date.find(',')+2:], '%B %d, %Y'))
+			
+			#don't bother re-collecting data we already have
+			if date < on_or_after: continue
+			
+			rows = section.find_all("p")
+			for row in rows:
+				this_row_contents = row.text
+				this_row_contents = this_row_contents.split('\n')[1:-2]
+				is_playoffs = date >= '2024-10-01'
+				if len(this_row_contents) in [6, 7]: 
+					#future games, remove the postseason series designation for easier scraping if playoffs
+					if is_playoffs: this_row_contents.pop(1)
+					all_data.append([date,
+						BR_TEAM_MAP[this_row_contents[4].strip(' ')],
+						BR_TEAM_MAP[this_row_contents[1]],
+						'', ''])
+				elif len(this_row_contents) == 5:
+					#games already occurred
+					all_data.append([date,
+						BR_TEAM_MAP[this_row_contents[3].strip(' ')], 
+						BR_TEAM_MAP[this_row_contents[0].strip(' ')], 
+						this_row_contents[4].strip(' ').strip('(').strip(')'),
+						this_row_contents[1].strip(' ').strip('(').strip(')')
+						])
 
 	df = pd.DataFrame(all_data, columns = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score'])
 	if save_new_scrape: df.to_csv(SAVE_PATH, index = False)
 	return df
 
+# scrape_results_and_schedule('2024-10-04', save_new_scrape = False)
 # print(scrape_odds('2024-06-29'))
