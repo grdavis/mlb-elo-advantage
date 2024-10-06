@@ -118,7 +118,7 @@ def setup_playoffs(this_sim):
 			team1, wins1 = wc_round.pop(0)
 			team2, wins2 = wc_round.pop(0)
 			div_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhh'), 0))
- returns.append(div_round[:])
+		returns.append(div_round[:])
 
 	#simulate making it to the League Championship Round
 	if league_round == []:
@@ -126,7 +126,7 @@ def setup_playoffs(this_sim):
 			team1, wins1 = div_round.pop(0)
 			team2, wins2 = div_round.pop(0) 
 			league_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaah'), 0))
-	returns.append(league_round[:])
+		returns.append(league_round[:])
 
 	#simulate making it to the WS
 	if ws_round == []:
@@ -134,7 +134,7 @@ def setup_playoffs(this_sim):
 			team1, wins1 = league_round.pop(0)
 			team2, wins2 = league_round.pop(0)
 			ws_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'), 0))
-	returns.append(ws_round)
+		returns.append(ws_round)
 
 	#figure out home team in WS if not specified already
 	if ws_round != None or rankings[ws_round[0]] < rankings[ws_round[1]]:
