@@ -106,7 +106,7 @@ def setup_playoffs(this_sim):
 		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 2), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 1), ('NYM', 2), 
 					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 2), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 2)]
 		div_round = [('LAD', 2), ('SDP', 2), ('PHI', 1), ('NYM', 3), 
-					('NYY', 2), ('KCR', 1), ('CLE', 1), ('DET', 2)]
+					('NYY', 3), ('KCR', 1), ('CLE', 2), ('DET', 2)]
 		#will define each of these as the 2024 playoffs go on
 		# league_round = None
 		# ws_round = None
