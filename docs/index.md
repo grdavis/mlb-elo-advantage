@@ -1,25 +1,25 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2024-10-29 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2024-10-30 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 33% of games and have a 124.0% ROI over the last 7 days. ROI is -18.34% over the last 30 days and -1.16% over the last 365.
+The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 50% of games and have a 12.0% ROI over the last 7 days. ROI is -39.5% over the last 30 days and -1.37% over the last 365.
 
 | Date       | Away   | Home   |   Away WinP |   Home WinP |   Away ML |   Away Threshold |   Home ML |   Home Threshold |
 |:-----------|:-------|:-------|------------:|------------:|----------:|-----------------:|----------:|-----------------:|
-| 2024-10-29 | LAD    | NYY    |       55.38 |       44.62 |       124 |             +100 |      -148 |             +149 |
+| 2024-10-30 | LAD    | NYY    |       53.07 |       46.93 |       124 |             +109 |      -148 |             +137 |
 
 # Team Elo Ratings
 This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 50,000 simulations of the rest of the regular season and playoffs
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | LAD    |         1583 |             39 |              20 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 96.98%   |
+|  1 | LAD    |         1576 |             32 |              13 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 96.18%   |
 |  2 | SDP    |         1553 |             26 |               2 | 100.00%    | 0.00%          | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
-|  3 | MIL    |         1543 |             18 |              -5 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  4 | ARI    |         1542 |             28 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  5 | NYM    |         1540 |             35 |               3 | 100.00%    | 0.00%          | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
-|  6 | ATL    |         1540 |             -4 |              -4 | 100.00%    | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  7 | HOU    |         1539 |              3 |              -7 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  8 | NYY    |         1539 |             36 |               4 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 3.02%    |
+|  3 | NYY    |         1545 |             42 |              10 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 3.82%    |
+|  4 | MIL    |         1543 |             18 |              -5 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  5 | ARI    |         1542 |             28 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  6 | NYM    |         1540 |             35 |               4 | 100.00%    | 0.00%          | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
+|  7 | ATL    |         1540 |             -4 |              -5 | 100.00%    | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  8 | HOU    |         1539 |              3 |              -7 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  9 | SEA    |         1533 |              5 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 10 | CHC    |         1527 |             16 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 11 | PHI    |         1527 |            -16 |              -9 | 100.00%    | 100.00%        | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
