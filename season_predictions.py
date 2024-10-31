@@ -109,7 +109,7 @@ def setup_playoffs(this_sim):
 					('NYY', 3), ('KCR', 1), ('CLE', 3), ('DET', 2)]
 		league_round = [('LAD', 4), ('NYM', 2), 
 					('NYY', 4), ('CLE', 1)]
-		ws_round = [('LAD', 3), ('NYY', 0)]
+		ws_round = [('LAD', 4), ('NYY', 1)]
 
 	returns = [divw, wcs]
 	#simulate making it to divisional round
