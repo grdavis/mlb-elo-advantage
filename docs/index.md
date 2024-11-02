@@ -1,7 +1,7 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2024-11-01 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2024-11-02 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 50% of games and have a 49.33% ROI over the last 7 days. ROI is 1.14% over the last 30 days and -1.11% over the last 365.
+The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. For transparency, these recommendations have been triggered for 60% of games and have a 49.33% ROI over the last 7 days. ROI is 1.14% over the last 30 days and -1.11% over the last 365.
 
 | Date   | Away   | Home   | Away WinP   | Home WinP   | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
 |--------|--------|--------|-------------|-------------|-----------|------------------|-----------|------------------|
@@ -11,12 +11,12 @@ This table summarizes each team's Elo rating and their chances of making it to v
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | LAD    |         1578 |              0 |              15 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 100.00%  |
+|  1 | LAD    |         1578 |             -2 |              15 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 100.00%  |
 |  2 | SDP    |         1553 |              0 |              -3 | 100.00%    | 0.00%          | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
-|  3 | NYY    |         1544 |              0 |               9 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
-|  4 | MIL    |         1543 |              0 |              -3 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  3 | NYY    |         1544 |              2 |               9 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
+|  4 | MIL    |         1543 |              0 |               0 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  5 | ARI    |         1542 |              0 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  6 | NYM    |         1540 |              0 |               2 | 100.00%    | 0.00%          | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
+|  6 | NYM    |         1540 |              0 |              -1 | 100.00%    | 0.00%          | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
 |  7 | ATL    |         1540 |              0 |               0 | 100.00%    | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  8 | HOU    |         1539 |              0 |               0 | 100.00%    | 100.00%        | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  9 | SEA    |         1533 |              0 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
