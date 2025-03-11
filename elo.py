@@ -15,6 +15,7 @@ HOME_ADVANTAGE = 15 #updated from 24 on 6/7/24, updated from 17 on 7/28/24
 SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
 SNAPSHOT_LOOKBACKS = [7, 30]
+ELO_BASE = 1500
 
 class Team():
 	'''
@@ -63,7 +64,7 @@ class ELO_Sim():
 
 	def season_reset(self):
 		for team in self.teams: 
-			self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + 1500 * (1 - SEASON_RESET_MULT)
+			self.teams[team].elo = self.teams[team].elo * SEASON_RESET_MULT + ELO_BASE * (1 - SEASON_RESET_MULT)
 			self.teams[team].season_wins = 0
 			self.teams[team].season_losses = 0
 

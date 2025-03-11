@@ -5,8 +5,8 @@ import pandas as pd
 from season_predictions import get_playoff_probs
 
 OUTPUT_PATH = f"OUTPUTS/{utils.date_to_string(datetime.today())[:10]} Game Predictions.csv"
-ADV_THRESHOLD = .04
-ADV_PCT_THRESHOLD = .11 #changed from .08 on 7/28/24 after more tuning adjustments to home advantage 
+ADV_THRESHOLD = .05
+ADV_PCT_THRESHOLD = .11
 ADV_TO_USE = 'ADV_PCT'
 
 def assemble_results_and_predictions():

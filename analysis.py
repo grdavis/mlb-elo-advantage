@@ -59,44 +59,43 @@ def tune_home_and_k():
 
 # tune_home_and_k()
 #games through 9/23/24, brier = .243769
+# advantage_cutoff_tuning('ADV_PCT')
 
-# kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'half-kelly')
-# advantage_cutoff_tuning('ADV', '2024-09-03')
-#when ADV is percentage-based
 '''
-Performance for 2023 through August 2024 
-choose threshold 0.11 for 10.5% ROI and 14% bet rate
-    adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     2650.0    -26.91  -0.94                 65
-1            0.02     2373.0    -35.30  -1.39                 58
-2            0.03     2089.0    -36.25  -1.64                 51
-3            0.04     1815.0      5.93   0.31                 44
-4            0.05     1587.0     14.15   0.86                 39
-5            0.06     1381.0      0.84   0.06                 34
-6            0.07     1198.0     10.71   0.87                 29
-7            0.08     1004.0     26.12   2.55                 25
-8            0.09      836.0     22.94   2.69                 20
-9            0.10      693.0     38.87   5.52                 17
-10           0.11      562.0     59.50  10.46                 14
-11           0.12      444.0     44.67   9.96                 11
-12           0.13      341.0     24.13   7.02                  8
-13           0.14      259.0     16.20   6.22                  6
-14           0.15      182.0     -8.61  -4.70                  4
-15           0.16       99.0      9.17   9.20                  2
-16           0.17       38.0     12.13  31.63                  1
+Performance for 2023 through end of 2024 season using ADV_PCT 
+choose threshold 0.11 for 9.4% ROI and 14% bet rate
+    adv_threshold  games_bet  winnings   ROI  percent_games_bet
+0            0.01     2862.0    -45.03 -1.46                 64
+1            0.02     2564.0    -48.30 -1.76                 58
+2            0.03     2264.0    -59.00 -2.46                 51
+3            0.04     1962.0    -22.26 -1.08                 44
+4            0.05     1709.0      2.64  0.15                 38
+5            0.06     1485.0    -14.34 -0.93                 33
+6            0.07     1270.0     -4.41 -0.34                 29
+7            0.08     1080.0     14.36  1.30                 24
+8            0.09      906.0     29.56  3.21                 20
+9            0.10      743.0     41.48  5.50                 17
+10           0.11      610.0     58.04  9.42                 14
+11           0.12      479.0     45.41  9.40                 11
+12           0.13      374.0     15.07  4.01                  8
+13           0.14      282.0     12.25  4.32                  6
+14           0.15      199.0     -1.27 -0.64                  4
+15           0.16      113.0      9.29  8.20                  3
+16           0.17       42.0      1.31  3.12                  1
 '''
 
 #when ADV is difference-based
 '''
-Performance for 2023 through June 2024
-choose threshold 0.05 for 5.4% ROI and 12% bet rate
+Performance for 2023 through end of 2024 season
+choose threshold 0.05 for 3.4% ROI and 12% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     2348.0    -53.84  -2.14                 57
-1            0.02     1759.0    -26.73  -1.44                 43
-2            0.03     1248.0      1.89   0.15                 30
-3            0.04      817.0     15.98   1.89                 20
-4            0.05      474.0     26.42   5.42                 12
-5            0.06      214.0     14.23   6.50                  5
+0            0.01     2542.0    -64.60  -2.37                 57
+1            0.02     1898.0    -47.79  -2.37                 43
+2            0.03     1345.0    -12.24  -0.87                 30
+3            0.04      886.0      8.17   0.89                 20
+4            0.05      527.0     18.56   3.42                 12
+5            0.06      232.0      8.25   3.49                  5
+6            0.07       16.0     -5.40 -32.91                  0
 '''
 
 def kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'kelly'):

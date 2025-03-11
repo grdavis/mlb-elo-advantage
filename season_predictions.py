@@ -49,7 +49,8 @@ def setup_playoffs(this_sim):
 	Championship Series: 7 game series, 2-3-2 format
 	World Series: 7 game series, 2-3-2 format, better record (not necessarily seed) is home
 
-	For the purposes of this simulation exercise, if there are ties in record, they will be broken randomly
+	For the purposes of this simulation exercise, if there are ties in record, they will be broken randomly.
+	We don't have all the data in this script to break ties using the actual MLB rules.
 
 	Returns a list consisting of:
 		- Dictionary mapping league to a list of teams who won their divisions, in seed order
@@ -99,6 +100,7 @@ def setup_playoffs(this_sim):
 	league_round = []
 	ws_round = []
 
+	# update the following with the official playoff bracket as it's released and progresses
 	is_current_playoffs = this_sim.date >= '2024-09-30'
 	if is_current_playoffs:
 		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
@@ -111,7 +113,7 @@ def setup_playoffs(this_sim):
 					('NYY', 4), ('CLE', 1)]
 		ws_round = [('LAD', 4), ('NYY', 1)]
 
-	returns = [divw, wcs]
+	returns = [divw, wcs] # start with a list of divisional winners and wild card participants
 	#simulate making it to divisional round
 	if div_round == []:
 		while len(wc_round) >= 2:
