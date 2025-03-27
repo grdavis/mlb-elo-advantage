@@ -160,7 +160,7 @@ def get_playoff_probs(this_sim, game_data):
 	N_SIMS = 50000
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
-	non_playoffs = game_data[game_data['Date'] < '2024-10-01']
+	non_playoffs = game_data[game_data['Date'] < '2025-09-29']
 	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')]
 	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
 

@@ -124,6 +124,7 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 			for row in rows:
 				this_row_contents = row.text
 				this_row_contents = this_row_contents.split('\n')[1:-2]
+				if this_row_contents == [] or this_row_contents[1] == '(Spring)': continue
 				is_playoffs = date >= '2025-09-29'
 				if len(this_row_contents) in [6, 7]: 
 					#future games, remove the postseason series designation for easier scraping if playoffs
@@ -145,5 +146,5 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	if save_new_scrape: df.to_csv(SAVE_PATH, index = False)
 	return df
 
-# scrape_results_and_schedule('2024-10-04', save_new_scrape = False)
+# scrape_results_and_schedule('2024-11-06', save_new_scrape = False)
 # print(scrape_odds('2024-06-29'))

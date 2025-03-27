@@ -202,8 +202,13 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 		#Get a list of dates on which to scrape odds - goes from day after last game in historical data through today
 		#Scrape odds for the days in odds_dates and merge this data with the golden schedule data
 		gb_obj = utils.string_to_date(games_before)
-		odds_dates = [gb_obj + timedelta(days = x) for x in range((datetime.today() - gb_obj).days + 1)]
-		odds_df = pd.concat([scrape_odds(utils.date_to_string(i)) for i in odds_dates]) 
+		odds_dates = []
+		for x in range((datetime.today() - gb_obj).days + 1):
+			date = gb_obj + timedelta(days=x)
+			# Skip dates between Dec 1 and Mar 15 (offseason)
+			if not (date.month == 12 or (date.month <= 3 and date.day <= 15)):
+				odds_dates.append(date)
+		odds_df = pd.concat([scrape_odds(utils.date_to_string(i)) for i in odds_dates])
 		merged_df, n_matched = utils.merge_odds_and_sched(new_df, odds_df)
 		print(f"Matched {n_matched} games from golden scedule with live odds")
 		

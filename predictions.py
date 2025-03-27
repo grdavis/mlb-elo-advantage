@@ -48,6 +48,9 @@ def eval_recent_performance(recent_days, adv_to_use, threshold):
     combo = assemble_results_and_predictions()
     combo = combo.loc[combo['Date'] >= utils.shift_dstring(utils.today_date_string(), -recent_days)]
     
+	#return 0, 0 if there are no games to evaluate
+    if combo.shape[0] == 0: return (0, 0)
+
     mdf = convert_to_betting_rows(combo, adv_to_use)
     total_games = mdf.shape[0] / 2 #divide by two since mdf has one row for each side of the game
 

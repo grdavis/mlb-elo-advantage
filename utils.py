@@ -67,7 +67,7 @@ BR_TEAM_MAP = {
 	'Chicago White Sox': 'CHW',
 	'San Diego Padres': 'SDP',
 	'Colorado Rockies': 'COL',
-	'Oakland Athletics': 'OAK',
+	'Athletics': 'OAK',
 	'Los Angeles Angels': 'ANA',
 	'Los Angeles Dodgers': 'LAD',
 	"Arizona D'Backs": 'ARI',
