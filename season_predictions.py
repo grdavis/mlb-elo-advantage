@@ -101,7 +101,7 @@ def setup_playoffs(this_sim):
 	ws_round = []
 
 	# update the following with the official playoff bracket as it's released and progresses
-	is_current_playoffs = this_sim.date >= '2024-09-30'
+	is_current_playoffs = this_sim.date >= '2025-09-29'
 	if is_current_playoffs:
 		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
 		divw = {'AL': ['NYY', 'CLE', 'HOU'], 'NL': ['LAD', 'PHI', 'MIL']}

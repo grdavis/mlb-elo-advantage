@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from utils import BR_TEAM_MAP, SO_TEAM_MAP, date_to_string, string_to_date
 
-SEASON = 2024
+SEASON = 2025
 SCHEDULE_URL = f'https://www.baseball-reference.com/leagues/majors/{SEASON}-schedule.shtml'
 ODDS_URL = 'https://www.scoresandodds.com/mlb?date=YEAR-MONTH-DAY'
 SAVE_PATH = f"DATA/new_game_log_{date_to_string(datetime.today())[:10]}.csv"
@@ -124,7 +124,7 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 			for row in rows:
 				this_row_contents = row.text
 				this_row_contents = this_row_contents.split('\n')[1:-2]
-				is_playoffs = date >= '2024-10-01'
+				is_playoffs = date >= '2025-09-29'
 				if len(this_row_contents) in [6, 7]: 
 					#future games, remove the postseason series designation for easier scraping if playoffs
 					if is_playoffs: this_row_contents.pop(1)
