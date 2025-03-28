@@ -146,5 +146,5 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	if save_new_scrape: df.to_csv(SAVE_PATH, index = False)
 	return df
 
-# scrape_results_and_schedule('2024-11-06', save_new_scrape = False)
+# print(scrape_results_and_schedule('2025-03-27', save_new_scrape = False).head(20))
 # print(scrape_odds('2024-06-29'))
