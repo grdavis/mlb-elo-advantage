@@ -3,6 +3,8 @@ from random import random
 from tqdm import tqdm
 import elo
 
+N_SIMS = 10000
+
 def sim_winner(this_sim, home, away, is_playoffs):
 	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
 	return home if random() < home_winp else away
@@ -157,7 +159,6 @@ def get_playoff_probs(this_sim, game_data):
 	the rest of the season and tabulates the probabilities of each team making the playoffs, the CS, DS, WS,
 	and winning the whole thing 
 	'''
-	N_SIMS = 50000
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
 	non_playoffs = game_data[game_data['Date'] < '2025-09-29']
