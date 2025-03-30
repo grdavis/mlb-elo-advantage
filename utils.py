@@ -172,7 +172,7 @@ def get_latest_data_filepath():
 	elligible_data = list(filter(r.match, os.listdir(DATA_FOLDER)))
 	return DATA_FOLDER + sorted(elligible_data, key = lambda x: x[9:19], reverse = True)[0]
 
-def save_markdown_df(predictions, ratings, date_str, performance):
+def save_markdown_df(predictions, ratings, date_str, performance, sims = 50000):
 	'''
 	Takes in a predictions dataframe of today's predictions and a table with the team rankings
 	Converts tables to markdown, and saves them in the same file in the docs folder for GitHub pages to find
@@ -188,7 +188,7 @@ def save_markdown_df(predictions, ratings, date_str, performance):
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
-		md.write("This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 10,000 simulations of the rest of the regular season and playoffs\n\n")
+		md.write(f"This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on {sims} simulations of the rest of the regular season and playoffs\n\n")
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
 

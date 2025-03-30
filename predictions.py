@@ -92,8 +92,8 @@ def clean_up_ratings(this_sim, game_data):
 	snap_col_names = [f'{i}-Day Change' for i in elo.SNAPSHOT_LOOKBACKS]
 	out_data = sorted(out_data, key = lambda x: x[1], reverse = True)
 	ratings_df = pd.DataFrame(out_data, columns = ['Team', 'Elo Rating'] + snap_col_names)
-	season_probs = get_playoff_probs(this_sim, game_data)
-	return pd.merge(ratings_df, season_probs, on = 'Team', how = 'inner')
+	season_probs, n_sims = get_playoff_probs(this_sim, game_data)
+	return pd.merge(ratings_df, season_probs, on = 'Team', how = 'inner'), n_sims
 
 def make_predictions(this_sim, df, pred_date = None):
 	'''
@@ -122,8 +122,8 @@ def make_predictions(this_sim, df, pred_date = None):
 	last_7_30_365 = (eval_recent_performance(7, ADV_TO_USE, t), eval_recent_performance(30, ADV_TO_USE, t), eval_recent_performance(365, ADV_TO_USE, t))
 	
 	#save the predictions output and ratings in markdown where github pages can find it
-	ratings = clean_up_ratings(this_sim, df)
-	utils.save_markdown_df(output_df, ratings, pred_date, last_7_30_365)
+	ratings, n_sims = clean_up_ratings(this_sim, df)
+	utils.save_markdown_df(output_df, ratings, pred_date, last_7_30_365, sims = n_sims)
 
 def main():
 	'''

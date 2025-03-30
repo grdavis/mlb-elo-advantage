@@ -3,7 +3,7 @@ from random import random
 from tqdm import tqdm
 import elo
 
-N_SIMS = 10000
+N_GAMES_TO_SIM = 5000000 # at about 19000 games per second, this targets about a 6 minute runtime no matter how many games remain
 
 def sim_winner(this_sim, home, away, is_playoffs):
 	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
@@ -172,8 +172,9 @@ def get_playoff_probs(this_sim, game_data):
 	championship = {}
 	world_series = {}
 	ws_winner = {}
+	n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], 50000) # calculate how many seasons we can simulate
 
-	for _ in tqdm(range(N_SIMS)):
+	for _ in tqdm(range(n_sims)):
 		#reset the win and loss counts to what they are currently at the start of every simulation
 		for team in current_wins:
 			this_sim.teams[team].season_wins = current_wins[team]
@@ -198,9 +199,11 @@ def get_playoff_probs(this_sim, game_data):
 	for team in this_sim.teams: playoffs[team] = playoffs.get(team, 0)
 	outcomes_df = pd.DataFrame([playoffs, div_wins, divisional, championship, world_series, ws_winner]).T.fillna(0).reset_index()
 	outcomes_df.columns = ['Team', 'Playoffs', 'Win Division', 'Reach Div. Rd.', 'Reach CS', 'Reach WS', 'Win WS']
-	outcomes_df.iloc[:, 1:] = (outcomes_df.iloc[:, 1:] / N_SIMS).applymap('{:.2%}'.format)
-	return outcomes_df
+	outcomes_df.iloc[:, 1:] = (outcomes_df.iloc[:, 1:] / n_sims).applymap('{:.2%}'.format)
+	return outcomes_df, n_sims
 
 #Example Testing Query
 # this_sim, df = elo.main(scrape = False, save_scrape = False, save_new_scrape = False, print_ratings = False)
-# print(get_playoff_probs(this_sim, df))
+# outcomes_df, n_sims = get_playoff_probs(this_sim, df)
+# print(f"Results based on {n_sims:,} simulated seasons:")
+# print(outcomes_df)
