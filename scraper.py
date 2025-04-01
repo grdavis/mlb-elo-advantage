@@ -98,6 +98,19 @@ def scrape_odds(date_str):
 
 	return pd.DataFrame(day_stats, columns = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
 
+def get_section_date(section, previous_date=None):
+    date_header = section.find('h3').text
+    if date_header == "Today's Games": # Check if games have scores (indicating these aren't actually today's games)
+        rows = section.find_all("p")
+        has_scores = any(len(row.text.split('\n')[1:-2]) == 5 for row in rows)
+        if has_scores: # If we have scores, this must be the day after the previous section
+            if previous_date:
+                next_date = datetime.strptime(previous_date, '%Y-%m-%d') + timedelta(days=1)
+                return date_to_string(next_date)
+            else: return date_to_string(datetime.today())
+        else: return date_to_string(datetime.today()) # No scores means these are actually today's games
+    else: return date_to_string(datetime.strptime(date_header[date_header.find(',')+2:], '%B %d, %Y')) # Normal date header processing
+
 def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	'''
 	Visits Baseball Reference season schedule page and grabs all scores on_or_after a date.
@@ -108,14 +121,12 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	data = requests.get(SCHEDULE_URL).content
 	section_content = BeautifulSoup(data,'html.parser').find_all('div', {'class': 'section_content'})
 	#there should be one section_content for regular season and one for post-season
+	previous_date = None
 	for sc in section_content:
 		sections = sc.find_all("div")
 		for section in sections:
-			date = section.find('h3').text
-			if date == "Today's Games":
-				date = date_to_string(datetime.today())
-			else:
-				date = date_to_string(datetime.strptime(date[date.find(',')+2:], '%B %d, %Y'))
+			date = get_section_date(section, previous_date)
+			previous_date = date
 			
 			#don't bother re-collecting data we already have
 			if date < on_or_after: continue
@@ -146,5 +157,5 @@ def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	if save_new_scrape: df.to_csv(SAVE_PATH, index = False)
 	return df
 
-# print(scrape_results_and_schedule('2025-03-27', save_new_scrape = False).head(20))
+# print(scrape_results_and_schedule('2025-03-30', save_new_scrape = False).head(30))
 # print(scrape_odds('2024-06-29'))
