@@ -34,16 +34,10 @@ def tune_home_and_k():
     The original K Factor and Home Advantage were selected by copying the recommendations from 538 (4 and 24, respectively).
     Those parameters were likely selected by backtesting on a much larger set of data than what we have since 2023, but 
     we should still check if these parameters are still reasonable
-
-    UPDATE 7/28/24: based on some findings using this function and a historical analysis of games since the start of the 2023
-    season, we are updating home advantage to be 15. This implies the average home team wins 52.16% of games which closely
-    aligns with the 52.19% home win percentage observed over these years and 4,045 games. Since the pandemic, home field advantage
-    in MLB has seemed to decline: https://www.washingtonpost.com/sports/2023/05/11/baseball-home-field-advantage/
-    And it's not unique to baseball: https://sports.yahoo.com/farewell-to-nfl-home-field-advantage-as-home-teams-have-a-losing-record-through-5-weeks-153759757.html
     '''
     latest_df = pd.read_csv(get_latest_data_filepath())
-    homes = np.arange(15, 16, 1)
-    ks = np.arange(3, 4.5, 0.5)
+    homes = np.arange(18, 19, 1)
+    ks = np.arange(4, 4.5, 0.5)
 
     #Calculate and print out the brier score for each combination. We want brier to be LOW
     briers = []
@@ -58,44 +52,44 @@ def tune_home_and_k():
     print(sorted(briers, key = lambda x: x[-1]))
 
 # tune_home_and_k()
-#games through 9/23/24, brier = .243769
+#games through 5/3/25, brier = .243380
 # advantage_cutoff_tuning('ADV_PCT')
 
 '''
-Performance for 2023 through end of 2024 season using ADV_PCT 
-choose threshold 0.11 for 9.4% ROI and 14% bet rate
+Performance for 2023 through 5/3/25 using ADV_PCT 
+choose threshold 0.12 for 4.6% ROI and 11% bet rate
     adv_threshold  games_bet  winnings   ROI  percent_games_bet
-0            0.01     2862.0    -45.03 -1.46                 64
-1            0.02     2564.0    -48.30 -1.76                 58
-2            0.03     2264.0    -59.00 -2.46                 51
-3            0.04     1962.0    -22.26 -1.08                 44
-4            0.05     1709.0      2.64  0.15                 38
-5            0.06     1485.0    -14.34 -0.93                 33
-6            0.07     1270.0     -4.41 -0.34                 29
-7            0.08     1080.0     14.36  1.30                 24
-8            0.09      906.0     29.56  3.21                 20
-9            0.10      743.0     41.48  5.50                 17
-10           0.11      610.0     58.04  9.42                 14
-11           0.12      479.0     45.41  9.40                 11
-12           0.13      374.0     15.07  4.01                  8
-13           0.14      282.0     12.25  4.32                  6
-14           0.15      199.0     -1.27 -0.64                  4
-15           0.16      113.0      9.29  8.20                  3
-16           0.17       42.0      1.31  3.12                  1
+0            0.01     3100.0    -53.99  -1.62                 64
+1            0.02     2764.0    -50.78  -1.72                 57
+2            0.03     2418.0    -50.89  -1.99                 50
+3            0.04     2116.0    -57.76  -2.60                 43
+4            0.05     1844.0    -36.34  -1.89                 38
+5            0.06     1603.0    -21.39  -1.29                 33
+6            0.07     1380.0    -26.24  -1.85                 28
+7            0.08     1177.0    -31.15  -2.59                 24
+8            0.09      968.0      0.51   0.05                 20
+9            0.10      792.0     22.05   2.74                 16
+10           0.11      647.0     18.71   2.86                 13
+11           0.12      523.0     23.98   4.55                 11
+12           0.13      401.0     13.67   3.39                  8
+13           0.14      299.0     -0.94  -0.31                  6
+14           0.15      204.0     -2.74  -1.34                  4
+15           0.16      109.0    -14.55 -13.33                  2
+16           0.17       42.0    -10.54 -25.02                  1
 '''
 
 #when ADV is difference-based
 '''
-Performance for 2023 through end of 2024 season
-choose threshold 0.05 for 3.4% ROI and 12% bet rate
+Performance for 2023 through 5/3/25
+choose threshold 0.05 for 2.7% ROI and 12% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     2542.0    -64.60  -2.37                 57
-1            0.02     1898.0    -47.79  -2.37                 43
-2            0.03     1345.0    -12.24  -0.87                 30
-3            0.04      886.0      8.17   0.89                 20
-4            0.05      527.0     18.56   3.42                 12
-5            0.06      232.0      8.25   3.49                  5
-6            0.07       16.0     -5.40 -32.91                  0
+0            0.01     2739.0    -39.92  -1.36                 56
+1            0.02     2041.0    -84.22  -3.89                 42
+2            0.03     1472.0    -38.90  -2.52                 30
+3            0.04      968.0     -8.06  -0.80                 20
+4            0.05      562.0     15.51   2.69                 12
+5            0.06      234.0     -3.79  -1.58                  5
+6            0.07        8.0     -4.00 -48.19                  0
 '''
 
 def kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'kelly'):
