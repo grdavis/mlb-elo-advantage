@@ -89,11 +89,13 @@ def scrape_odds(date_str):
 		if scores_final:
 			away, away_score, away_ml, aou = get_info_from_final_row(away_row)
 			home, home_score, home_ml, hou = get_info_from_final_row(home_row)
+			if not (home in SO_TEAM_MAP and away in SO_TEAM_MAP): continue
 			if away_score == '' or home_score == '': continue #skip games that did not start this day (postponed)
 			day_stats.append([date_to_string(date_obj), SO_TEAM_MAP[home], SO_TEAM_MAP[away], home_score, away_score, hou, home_ml, away_ml])
 		else:
 			away, away_ml, aou = get_info_from_scheduled_row(away_row)
 			home, home_ml, hou = get_info_from_scheduled_row(home_row)
+			if not (home in SO_TEAM_MAP and away in SO_TEAM_MAP): continue
 			day_stats.append([date_to_string(date_obj), SO_TEAM_MAP[home], SO_TEAM_MAP[away], '', '', hou, home_ml, away_ml])
 
 	return pd.DataFrame(day_stats, columns = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
