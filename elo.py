@@ -103,11 +103,11 @@ def step_elo(this_sim, row, k_factor, home_adv):
 	winnerScore = homeScore if homeScore > awayScore else awayScore
 	loserScore = homeScore if awayScore > homeScore else awayScore
 
-	#instantiate teams with hard-coded Elos if we're on a team's first game in the system
+	#instantiate teams with base ELO of 1500 if we're on a team's first game in the system
 	if home not in this_sim.teams: 
-		this_sim.teams[home] = Team(home, this_sim.date, utils.STARTING_ELOS[home])
+		this_sim.teams[home] = Team(home, this_sim.date, ELO_BASE)
 	if away not in this_sim.teams: 
-		this_sim.teams[away] = Team(away, this_sim.date, utils.STARTING_ELOS[away])
+		this_sim.teams[away] = Team(away, this_sim.date, ELO_BASE)
 
 	pre_home = this_sim.get_elo(home)
 	pre_away = this_sim.get_elo(away)

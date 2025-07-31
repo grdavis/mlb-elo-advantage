@@ -8,40 +8,6 @@ DOCS_FOLDER = 'docs/'
 OUTPUTS_FOLDER = 'OUTPUTS/'
 UNIT = 1
 
-#ELOs to start the 2023 season - This is when the ELO model restarts every run
-STARTING_ELOS = { 
-	'NYY': 1543.060843,
-	'SFG': 1514.395798,
-	'WSN': 1454.556936,
-	'ATL': 1548.169577,
-	'BOS': 1498.037778,
-	'BAL': 1498.610307,
-	'CHC': 1489.04351,
-	'MIL': 1512.200668,
-	'TBD': 1523.683927,
-	'DET': 1473.797327,
-	'TEX': 1476.160323,
-	'PHI': 1531.204297,
-	'CIN': 1462.909072,
-	'PIT': 1457.555517,
-	'FLA': 1477.833312,
-	'NYM': 1528.751503,
-	'KCR': 1470.669424,
-	'MIN': 1495.072693,
-	'STL': 1524.159769,
-	'TOR': 1531.601034,
-	'HOU': 1569.837664,
-	'CHW': 1499.436735,
-	'SDP': 1521.984559,
-	'COL': 1471.699602,
-	'OAK': 1469.00074,
-	'ANA': 1492.615718,
-	'LAD': 1569.317852,
-	'ARI': 1494.078935,
-	'SEA': 1524.991153,
-	'CLE': 1525.558497
-}
-
 BR_TEAM_MAP = {
 	'New York Yankees': 'NYY',
 	'San Francisco Giants': 'SFG',
@@ -185,7 +151,7 @@ def save_markdown_df(predictions, ratings, date_str, performance, sims = 50000):
 	with open(f"{DOCS_FOLDER}/index.md", 'w') as md:
 		md.write(f'# MLB Elo Game Predictions and Playoff Probabilities for {date_str} - @grdavis\n')
 		md.write("Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.\n\n")
-		md.write("The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting since the start of the 2023 season. ")
+		md.write("The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). ")
 		md.write(f"For transparency, these recommendations have been triggered for {b7}% of games and have a {r7}% ROI over the last 7 days. ROI is {r30}% over the last 30 days and {r365}% over the last 365.\n\n")
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')

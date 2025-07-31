@@ -52,11 +52,11 @@ def evaluate_parameters(data, params):
         winnerScore = int(row['Home_Score']) if int(row['Home_Score']) > int(row['Away_Score']) else int(row['Away_Score'])
         loserScore = int(row['Away_Score']) if int(row['Home_Score']) > int(row['Away_Score']) else int(row['Home_Score'])
 
-        #instantiate teams with hard-coded Elos if we're on a team's first game in the system
+        #instantiate teams with base ELO of 1500 if we're on a team's first game in the system
         if home not in this_sim.teams: 
-            this_sim.teams[home] = elo.Team(home, this_sim.date, utils.STARTING_ELOS[home])
+            this_sim.teams[home] = elo.Team(home, this_sim.date, elo.ELO_BASE)
         if away not in this_sim.teams: 
-            this_sim.teams[away] = elo.Team(away, this_sim.date, utils.STARTING_ELOS[away])
+            this_sim.teams[away] = elo.Team(away, this_sim.date, elo.ELO_BASE)
 
         pre_home = this_sim.get_elo(home)
         pre_away = this_sim.get_elo(away)

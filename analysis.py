@@ -5,7 +5,7 @@ from utils import *
 from tqdm import tqdm
 from predictions import assemble_results_and_predictions, convert_to_betting_rows
 
-def advantage_cutoff_tuning(adv_to_use, end_early = None):
+def advantage_cutoff_tuning(adv_to_use, end_early = None, start_late = None):
     '''
     Once realizing 538s ELOs are no longer going to be updated, I needed to replicate their ELO system
     script checks that there still is some signal to the scheme when using my ELOs. The point is to find
@@ -14,6 +14,8 @@ def advantage_cutoff_tuning(adv_to_use, end_early = None):
     combo = assemble_results_and_predictions()
     if end_early != None:
         combo = combo.loc[combo['Date'] <= end_early]
+    if start_late != None:
+        combo = combo.loc[combo['Date'] >= start_late]
     mdf = convert_to_betting_rows(combo, adv_to_use)
 
     #there might be some outliers throwing off the numbers, so let's remove the top 5% and bottom 5% of thresholds
@@ -52,44 +54,43 @@ def tune_home_and_k():
     print(sorted(briers, key = lambda x: x[-1]))
 
 # tune_home_and_k()
-#games through 7/26/25, brier = .243833
-# advantage_cutoff_tuning('ADV')
+#games through 7/30/25, brier = .241769
+# advantage_cutoff_tuning('ADV', start_late = '2023-07-30') #last 2.5 seasons
 
 '''
-Performance for 2023 through 7/26/25 using ADV_PCT 
-choose threshold 0.12 for 3.5% ROI and 11% bet rate
+Performance for 7/30/23 through 7/30/25 using ADV_PCT 
+choose threshold 0.11 for 3.4% ROI and 12% bet rate
     adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     3631.0    -58.33  -1.49                 63
-1            0.02     3239.0    -60.01  -1.73                 56
-2            0.03     2826.0    -46.32  -1.55                 49
-3            0.04     2475.0    -40.91  -1.57                 43
-4            0.05     2157.0    -11.48  -0.51                 37
-5            0.06     1868.0     -5.23  -0.27                 32
-6            0.07     1608.0    -13.06  -0.79                 28
-7            0.08     1378.0    -17.38  -1.23                 24
-8            0.09     1145.0     17.13   1.47                 20
-9            0.10      937.0     30.22   3.18                 16
-10           0.11      760.0     14.19   1.84                 13
-11           0.12      614.0     21.72   3.51                 11
-12           0.13      470.0      3.71   0.78                  8
-13           0.14      348.0    -13.74  -3.92                  6
-14           0.15      244.0    -11.02  -4.49                  4
-15           0.16      137.0    -17.09 -12.43                  2
-16           0.17       56.0    -13.19 -23.50                  1
+0            0.01     2659.0    -58.57  -2.04                 61
+1            0.02     2357.0    -70.76  -2.81                 54
+2            0.03     2068.0    -60.58  -2.76                 48
+3            0.04     1812.0    -70.49  -3.71                 42
+4            0.05     1558.0    -56.28  -3.47                 36
+5            0.06     1327.0    -51.90  -3.79                 31
+6            0.07     1128.0    -53.28  -4.60                 26
+7            0.08      959.0    -25.27  -2.57                 22
+8            0.09      801.0    -13.36  -1.64                 18
+9            0.10      661.0      6.45   0.96                 15
+10           0.11      516.0     17.72   3.40                 12
+11           0.12      405.0    -10.62  -2.59                  9
+12           0.13      300.0      2.04   0.68                  7
+13           0.14      220.0     -6.39  -2.89                  5
+14           0.15      142.0    -16.37 -11.49                  3
+15           0.16       71.0     -6.57  -9.23                  2
+16           0.17       20.0     -0.21  -1.05                  0
 '''
 
 #when ADV is difference-based
 '''
-Performance for 2023 through 7/26/25
-choose threshold 0.05 for 4.1% ROI and 11% bet rate
-    adv_threshold  games_bet  winnings    ROI  percent_games_bet
-0            0.01     3208.0    -40.70  -1.18                 55
-1            0.02     2381.0    -48.41  -1.92                 41
-2            0.03     1709.0     -9.11  -0.51                 29
-3            0.04     1136.0      4.96   0.42                 20
-4            0.05      656.0     27.65   4.10                 11
-5            0.06      283.0      1.29   0.45                  5
-6            0.07       14.0     -3.26 -22.72                  0
+Performance for 7/30/23 through 7/30/25
+choose threshold 0.06 for 2.5% ROI and 4% bet rate
+    adv_threshold  games_bet  winnings   ROI  percent_games_bet
+0            0.01     2343.0    -81.64 -3.24                 54
+1            0.02     1740.0    -92.45 -5.00                 40
+2            0.03     1187.0    -40.92 -3.29                 27
+3            0.04      766.0    -32.97 -4.16                 18
+4            0.05      448.0     -1.16 -0.25                 10
+5            0.06      174.0      4.42  2.49                  4
 '''
 
 def kelly_tuning(adv_to_use = 'ADV_PCT', wager_type = 'kelly'):
