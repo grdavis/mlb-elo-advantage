@@ -72,7 +72,9 @@ BR_TEAM_MAP = {
 	'Los Angeles Dodgers': 'LAD',
 	"Arizona D'Backs": 'ARI',
 	'Seattle Mariners': 'SEA',
-	'Cleveland Guardians': 'CLE'
+	'Cleveland Guardians': 'CLE',
+	'Cleveland Indians': 'CLE',
+	'Oakland Athletics': 'OAK'
 }
 
 SO_TEAM_MAP = {
