@@ -22,13 +22,15 @@ def get_info_from_final_row(row):
 	if team_ml == None: 
 		team_ml = 'NA'
 	else:
-		team_ml = team_ml.find('span', {'class': 'data-value'})
-		if team_ml == None:
+		team_ml_span = team_ml.find('span', {'class': 'data-value'})
+		if team_ml_span == None:
 			team_ml = 'NA' 
-		elif team_ml.text.strip(" +") == 'even':
-			team_ml = 100
 		else:
-			team_ml = int(team_ml.text.strip(" +"))
+			ml_text = team_ml_span.text.strip(" +")
+			if ml_text == '' or ml_text == 'even':
+				team_ml = 100 if ml_text == 'even' else 'NA'
+			else:
+				team_ml = int(ml_text)
 
 	ou = row.find('td', {'data-field': 'live-total'})
 	if ou == None:
@@ -48,13 +50,15 @@ def get_info_from_scheduled_row(row):
 	if team_ml == None:
 		team_ml = 'NA'
 	else:
-		team_ml.find('span', {'class': 'data-value'})
-		if team_ml == None:
+		team_ml_span = team_ml.find('span', {'class': 'data-value'})
+		if team_ml_span == None:
 			team_ml = 'NA' 
-		elif team_ml.text.strip(" +") == 'even':
-			team_ml = 100
 		else:
-			team_ml = int(team_ml.text.strip(" +"))
+			ml_text = team_ml_span.text.strip(" +")
+			if ml_text == '' or ml_text == 'even':
+				team_ml = 100 if ml_text == 'even' else 'NA'
+			else:
+				team_ml = int(ml_text)
 	
 	ou = row.find('td', {'data-field': 'current-total'})
 	if ou == None:
