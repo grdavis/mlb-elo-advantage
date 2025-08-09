@@ -8,11 +8,11 @@ MLB ELO methodology taken from https://www.baseballprospectus.com/news/article/5
 and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
 '''
 
-K_FACTOR = 4
+K_FACTOR = 4.25 #updated from 4 on 8/9/25
 PLAYOFF_K_EXTRA = 2 #gets added to K_FACTOR when game is a playoff game
 PLAYOFF_MARGIN_MULT = 4/3 #elo margin multiplied by this if a playoff game
-HOME_ADVANTAGE = 18 #updated from 24 on 6/7/24, updated from 17 on 7/28/24, updated from 15 on 5/3/25
-SEASON_RESET_MULT = .67 #weighting for previous end-of-season ELO, remainder of weight applied to 1500
+HOME_ADVANTAGE = 20 #updated from 24 on 6/7/24, updated from 17 on 7/28/24, updated from 15 on 5/3/25, updated from 18 on 8/9/25
+SEASON_RESET_MULT = .70 #weighting for previous end-of-season ELO, remainder of weight applied to 1500, updated from .67 on 8/9/25
 SAVE_PATH = f"DATA/game_log_{utils.date_to_string(datetime.today())[:10]}.csv"
 SNAPSHOT_LOOKBACKS = [7, 30]
 ELO_BASE = 1500
@@ -171,6 +171,10 @@ def sim(df, k_factor, home_adv, snapshots = SNAPSHOT_LOOKBACKS):
 		
 		#step the Elo system forward based on the results in the row and enrich the output data
 		this_sim.date = bdate
+		# Skip rows without resolved scores (e.g., postponed or not yet played)
+		if (pd.isna(row['Home_Score']) or pd.isna(row['Away_Score']) or
+			str(row['Home_Score']).strip() == '' or str(row['Away_Score']).strip() == ''):
+			continue
 		h, a, hp, ap = step_elo(this_sim, row, k_factor, home_adv)
 		output.append(list(row) + [h, a, hp, ap])
 
@@ -208,9 +212,14 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 			# Skip dates between Dec 1 and Mar 15 (offseason)
 			if not (date.month == 12 or (date.month <= 3 and date.day <= 15)):
 				odds_dates.append(date)
-		odds_df = pd.concat([scrape_odds(utils.date_to_string(i)) for i in odds_dates])
+		# Build odds dataframe; handle case where there are no in-season dates to scrape (offseason)
+		odds_frames = [scrape_odds(utils.date_to_string(i)) for i in odds_dates]
+		if len(odds_frames) > 0:
+			odds_df = pd.concat(odds_frames)
+		else:
+			odds_df = pd.DataFrame(columns=['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
 		merged_df, n_matched = utils.merge_odds_and_sched(new_df, odds_df)
-		print(f"Matched {n_matched} games from golden scedule with live odds")
+		print(f"Matched {n_matched} games from golden schedule with live odds")
 		
 		#combine the merged golden schedule + odds data with the historical, existing data
 		df = df.loc[df['Date'] < games_before] #cut all forward-looking rows from old df

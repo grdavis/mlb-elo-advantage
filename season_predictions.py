@@ -140,17 +140,20 @@ def setup_playoffs(this_sim):
 			ws_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'), 0))
 	returns.append(ws_round)
 
-	#figure out home team in WS if not specified already
-	if ws_round != None or rankings[ws_round[0]] < rankings[ws_round[1]]:
-		team1, wins1 = ws_round[0]
-		team2, wins2 = ws_round[1]
-	else:
-		team2, wins2 = ws_round[0] 
-		team1, wins1 = ws_round[1]
+    # figure out home team in WS if not specified already
+    # lower ranking number means better record; ensure ws_round has two entries
+	if len(ws_round) == 2:
+		t1, w1 = ws_round[0]
+		t2, w2 = ws_round[1]
+		if rankings.get(t1, float('inf')) <= rankings.get(t2, float('inf')):
+			team1, wins1 = t1, w1
+			team2, wins2 = t2, w2
+		else:
+			team1, wins1 = t2, w2
+			team2, wins2 = t1, w1
 
 	#simulate WS winner
 	returns.append(sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'))
-
 	return returns
 
 def get_playoff_probs(this_sim, game_data):

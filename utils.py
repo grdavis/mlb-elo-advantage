@@ -126,8 +126,8 @@ def merge_odds_and_sched(sched, odds):
 	Outputs a df ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML']
 	'''
 	#add a column to each df to break ties in the case of doubleheaders on the same day
-	sched['matchup_on_date'] = sched.groupby(['Date', 'Home', 'Away']).transform('cumcount') + 1
-	odds['matchup_on_date'] = odds.groupby(['Date', 'Home', 'Away']).transform('cumcount') + 1
+	sched['matchup_on_date'] = sched.groupby(['Date', 'Home', 'Away']).cumcount() + 1
+	odds['matchup_on_date'] = odds.groupby(['Date', 'Home', 'Away']).cumcount() + 1
 	sched = sched.merge(odds, how = 'left', on = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'matchup_on_date'])
 	matched = sched.loc[~sched['OU_Line'].isna()] #roundabout way of counting how many we matched from scheduled and odds
 	return sched[['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML']], matched.shape[0]
