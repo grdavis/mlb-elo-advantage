@@ -94,7 +94,8 @@ def scrape_odds(date_str):
 			away, away_score, away_ml, aou = get_info_from_final_row(away_row)
 			home, home_score, home_ml, hou = get_info_from_final_row(home_row)
 			if not (home in SO_TEAM_MAP and away in SO_TEAM_MAP): continue
-			if away_score == '' or home_score == '': continue #skip games that did not start this day (postponed)
+			# Keep games even if scores are missing - Baseball Reference is the golden source for scores
+			# We're just enriching with odds data here
 			day_stats.append([date_to_string(date_obj), SO_TEAM_MAP[home], SO_TEAM_MAP[away], home_score, away_score, hou, home_ml, away_ml])
 		else:
 			away, away_ml, aou = get_info_from_scheduled_row(away_row)

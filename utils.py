@@ -124,11 +124,28 @@ def merge_odds_and_sched(sched, odds):
 	Take in one dataframe containing the golden schedule and another containing a schedule + odds
 	Merge these dataframes to create a golden schedule enriched with current odds where matches could be found
 	Outputs a df ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML']
+	
+	NOTE: This is a LEFT JOIN - we keep ALL games from the golden schedule (sched) and enrich with odds where available.
+	Games without odds will have NaN/empty values for OU_Line, Home_ML, Away_ML.
 	'''
 	#add a column to each df to break ties in the case of doubleheaders on the same day
 	sched['matchup_on_date'] = sched.groupby(['Date', 'Home', 'Away']).cumcount() + 1
-	odds['matchup_on_date'] = odds.groupby(['Date', 'Home', 'Away']).cumcount() + 1
-	sched = sched.merge(odds, how = 'left', on = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'matchup_on_date'])
+	
+	# Only add matchup_on_date to odds if it's not empty
+	if not odds.empty:
+		odds['matchup_on_date'] = odds.groupby(['Date', 'Home', 'Away']).cumcount() + 1
+		
+		# Merge on Date, Home, Away, and matchup_on_date only (NOT on scores)
+		# This prevents score format mismatches from breaking the merge
+		sched = sched.merge(odds[['Date', 'Home', 'Away', 'matchup_on_date', 'OU_Line', 'Home_ML', 'Away_ML']], 
+							how = 'left', 
+							on = ['Date', 'Home', 'Away', 'matchup_on_date'])
+	else:
+		# If odds is empty, just add empty columns
+		sched['OU_Line'] = None
+		sched['Home_ML'] = None
+		sched['Away_ML'] = None
+	
 	matched = sched.loc[~sched['OU_Line'].isna()] #roundabout way of counting how many we matched from scheduled and odds
 	return sched[['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML']], matched.shape[0]
 
@@ -215,10 +232,10 @@ def odds_calc(x):
 
 def wager_calc(x):
 	#wager enough to win a UNIT on favorites; wager a UNIT on underdogs
-    if x < 0: 
-    	return - UNIT * x / 100
-    else: 
-    	return UNIT
+	if x < 0: 
+		return - UNIT * x / 100
+	else: 
+		return UNIT
 
 def profit_calc(x, wager):
 	#x is the ML odds; wager is the amount wagered on those odds
