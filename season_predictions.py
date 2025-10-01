@@ -105,15 +105,13 @@ def setup_playoffs(this_sim):
 	# update the following with the official playoff bracket as it's released and progresses
 	is_current_playoffs = this_sim.date >= '2025-09-29'
 	if is_current_playoffs:
-		wcs = {'AL': ['BAL', 'KCR', 'DET'], 'NL': ['SDP', 'ATL', 'NYM']}
-		divw = {'AL': ['NYY', 'CLE', 'HOU'], 'NL': ['LAD', 'PHI', 'MIL']}
-		wc_round = [('LAD', 2), ('LAD', 0), ('SDP', 2), ('ATL', 0), ('PHI', 2), ('PHI', 0), ('MIL', 1), ('NYM', 2), 
-					('NYY', 2), ('NYY', 0), ('BAL', 0), ('KCR', 2), ('CLE', 2), ('CLE', 0), ('HOU', 0), ('DET', 2)]
-		div_round = [('LAD', 3), ('SDP', 2), ('PHI', 1), ('NYM', 3), 
-					('NYY', 3), ('KCR', 1), ('CLE', 3), ('DET', 2)]
-		league_round = [('LAD', 4), ('NYM', 2), 
-					('NYY', 4), ('CLE', 1)]
-		ws_round = [('LAD', 4), ('NYY', 1)]
+		wcs = {'AL': ['NYY', 'BOS', 'DET'], 'NL': ['CHC', 'SDP', 'CIN']}
+		divw = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
+		wc_round = [('MIL', 0), ('MIL', 0), ('CHC', 0), ('SDP', 0), ('PHI', 0), ('PHI', 0), ('LAD', 0), ('CIN', 0), 
+					('TOR', 0), ('TOR', 0), ('NYY', 0), ('BOS', 0), ('SEA', 0), ('SEA', 0), ('CLE', 0), ('DET', 0)]
+		div_round = []
+		league_round = []
+		ws_round = []
 
 	returns = [divw, wcs] # start with a list of divisional winners and wild card participants
 	#simulate making it to divisional round
@@ -175,7 +173,10 @@ def get_playoff_probs(this_sim, game_data):
 	championship = {}
 	world_series = {}
 	ws_winner = {}
-	n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], 50000) # calculate how many seasons we can simulate
+	if remaining_games.shape[0] == 0:
+		n_sims = 50000  # Use full simulation budget when no games remain
+	else:
+		n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], 50000) # calculate how many seasons we can simulate
 
 	for _ in tqdm(range(n_sims)):
 		#reset the win and loss counts to what they are currently at the start of every simulation
