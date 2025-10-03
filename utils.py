@@ -1,7 +1,10 @@
 import re
 import os
 import plotly.graph_objects as go
+import plotly.io as pio
 from datetime import datetime, timedelta
+# Set Plotly to open in browser instead of VSCode/Cursor
+pio.renderers.default = 'browser'
 
 DATA_FOLDER = 'DATA/'
 DOCS_FOLDER = 'docs/'
