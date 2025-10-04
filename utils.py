@@ -3,8 +3,6 @@ import os
 import plotly.graph_objects as go
 import plotly.io as pio
 from datetime import datetime, timedelta
-# Set Plotly to open in browser instead of VSCode/Cursor
-pio.renderers.default = 'browser'
 
 DATA_FOLDER = 'DATA/'
 DOCS_FOLDER = 'docs/'
@@ -225,7 +223,15 @@ def table_output(df, table_title, order = None):
 	               align='left'))
 	])
 	fig.update_layout(title = {'text': table_title, 'xanchor': 'center', 'x': .5})
-	fig.show()
+	
+	# Try to show the plot in browser (for local development)
+	# Skip if no browser available (e.g., in GitHub Actions)
+	try:
+		pio.renderers.default = 'browser'
+		fig.show()
+	except Exception:
+		# Silently skip if browser not available (headless environment)
+		pass
 
 def odds_calc(x):
     if x < 0:
