@@ -109,7 +109,7 @@ def setup_playoffs(this_sim):
 		divw = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
 		wc_round = [('MIL', 0), ('MIL', 0), ('CHC', 2), ('SDP', 1), ('PHI', 0), ('PHI', 0), ('LAD', 2), ('CIN', 0), 
 					('TOR', 0), ('TOR', 0), ('NYY', 2), ('BOS', 1), ('SEA', 0), ('SEA', 0), ('CLE', 1), ('DET', 2)]
-		div_round = [('MIL', 0), ('CHC', 0), ('PHI', 0), ('LAD', 0), ('TOR', 0), ('NYY', 0), ('SEA', 0), ('DET', 0)]
+		div_round = [('MIL', 1), ('CHC', 0), ('PHI', 0), ('LAD', 1), ('TOR', 1), ('NYY', 0), ('SEA', 0), ('DET', 1)]
 		league_round = []
 		ws_round = []
 
