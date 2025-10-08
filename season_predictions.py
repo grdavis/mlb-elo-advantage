@@ -1,9 +1,29 @@
 import pandas as pd
 from random import random
 from tqdm import tqdm
-import elo
 
 N_GAMES_TO_SIM = 5000000 # at about 19000 games per second, this targets about a 6 minute runtime no matter how many games remain
+
+# ============================================================================
+# 2025 PLAYOFF BRACKET CONFIGURATION (ONE-TIME SETUP)
+# Update this section when playoffs start each year, then never touch it again!
+# ============================================================================
+PLAYOFF_START_DATE = '2025-09-29'
+PLAYOFF_WILD_CARDS = {'AL': ['NYY', 'BOS', 'DET'], 'NL': ['CHC', 'SDP', 'CIN']}
+PLAYOFF_DIV_WINNERS = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
+
+# Initial Wild Card bracket structure (determines who plays whom)
+# Pattern: Division winners play against wild cards in this order
+# Each pair of entries represents one matchup (better seed listed first)
+PLAYOFF_WC_BRACKET = [
+	# NL matchups (indices 0-7)
+	('MIL', 0), ('MIL', 0), ('CHC', 0), ('SDP', 0),  # MIL(1) gets bye, WC3 vs WC4
+	('PHI', 0), ('PHI', 0), ('LAD', 0), ('CIN', 0),  # PHI(2) gets bye, WC5 vs WC6
+	# AL matchups (indices 8-15)
+	('TOR', 0), ('TOR', 0), ('NYY', 0), ('BOS', 0),  # TOR(1) gets bye, WC3 vs WC4
+	('SEA', 0), ('SEA', 0), ('CLE', 0), ('DET', 0)   # SEA(2) gets bye, WC5 vs WC6
+]
+# ============================================================================
 
 def sim_winner(this_sim, home, away, is_playoffs):
 	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
@@ -41,27 +61,73 @@ def sim_series(this_sim, home, home_wins, away, away_wins, form):
 		if win_dict[home] == wins_needed: return home
 		elif win_dict[away] == wins_needed: return away
 
-def setup_playoffs(this_sim):
-	'''
-	Take the current win/loss records in this_sim and determine playoff bracket.
-	Within each league: #1, #2, #3 are the 3 division winners in record order. #4, #5, #6 are the
-	next best records across the league.
-	Wild Card Round: #3 plays #6 and #4 plays #5, 3 game series, all 3 at better seed
-	Division Series: #1 plays #4/5 and #2 plays #3/6, 5 game series, 2-2-1 format
-	Championship Series: 7 game series, 2-3-2 format
-	World Series: 7 game series, 2-3-2 format, better record (not necessarily seed) is home
+def count_series_wins(playoff_games, team1, team2):
+	'''Count wins for team1 and team2 in their head-to-head series.'''
+	matchup_games = playoff_games[
+		((playoff_games['Home'] == team1) & (playoff_games['Away'] == team2)) |
+		((playoff_games['Home'] == team2) & (playoff_games['Away'] == team1))
+	]
+	
+	team1_wins, team2_wins = 0, 0
+	for _, game in matchup_games.iterrows():
+		winner = game['Home'] if float(game['Home_Score']) > float(game['Away_Score']) else game['Away']
+		if winner == team1:
+			team1_wins += 1
+		else:
+			team2_wins += 1
+	return team1_wins, team2_wins
 
-	For the purposes of this simulation exercise, if there are ties in record, they will be broken randomly.
-	We don't have all the data in this script to break ties using the actual MLB rules.
+def update_playoff_series_from_games(game_data, wc_round, playoff_start_date='2025-09-29'):
+	'''Parse game log, update all series scores, auto-detect advancing matchups.'''
+	playoff_games = game_data[
+		(game_data['Date'] >= playoff_start_date) & 
+		(game_data['Home_Score'].notna()) &
+		(game_data['Home_Score'] != '')
+	].copy()
+	
+	if len(playoff_games) == 0:
+		return wc_round, [], [], []
+	
+	print(f'[PLAYOFF PARSER] Found {len(playoff_games)} completed playoff games')
+	
+	wc_pairs = {tuple(sorted([wc_round[i][0], wc_round[i+1][0]])) 
+	            for i in range(0, len(wc_round), 2)}
+	
+	all_matchups = {}
+	for _, game in playoff_games.iterrows():
+		pair = tuple(sorted([game['Home'], game['Away']]))
+		if pair not in all_matchups:
+			all_matchups[pair] = (game['Home'], game['Away'])
+	
+	def build_round(matchup_pairs, wins_needed):
+		round_list = []
+		for team1, team2 in matchup_pairs:
+			wins1, wins2 = count_series_wins(playoff_games, team1, team2)
+			round_list.extend([(team1, wins1), (team2, wins2)])
+			if wins1 > 0 or wins2 > 0:
+				status = 'complete' if max(wins1, wins2) >= wins_needed else 'in progress'
+				print(f'[PLAYOFF PARSER] {team1} {wins1}-{wins2} {team2} ({status})')
+		return round_list
+	
+	updated_wc_round = build_round([all_matchups[p] for p in wc_pairs if p in all_matchups], 2)
+	
+	seen_pairs = wc_pairs.copy()
+	updated_div_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 3)
+	
+	seen_pairs.update(tuple(sorted([updated_div_round[i][0], updated_div_round[i+1][0]])) 
+	                  for i in range(0, len(updated_div_round), 2))
+	
+	updated_league_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 4)
+	
+	seen_pairs.update(tuple(sorted([updated_league_round[i][0], updated_league_round[i+1][0]])) 
+	                  for i in range(0, len(updated_league_round), 2))
+	
+	updated_ws_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 4)
+	
+	return updated_wc_round, updated_div_round, updated_league_round, updated_ws_round
 
-	Returns a list consisting of:
-		- Dictionary mapping league to a list of teams who won their divisions, in seed order
-		- Dictionary mapping league to a list of teams who made the league wild card position, in seed order
-		- List of teams in bracket order making it to the divisional round
-		- List of teams in bracket order making it to the AL/NLCS
-		- List of teams making it to the WS
-		- String of WS winner team name
-	'''
+def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
+	'''Determine playoff bracket from standings or use precomputed bracket. Simulates series to find WS winner.'''
 
 	#create list of teams and their win counts, add a random number between 0 and 1 to break ties, sort descending
 	standings = sorted([(team, this_sim.teams[team].season_wins + random(), this_sim.teams[team].league, this_sim.teams[team].division) for team in this_sim.teams], key = lambda x: x[1], reverse = True)
@@ -102,19 +168,29 @@ def setup_playoffs(this_sim):
 	league_round = []
 	ws_round = []
 
-	# update the following with the official playoff bracket as it's released and progresses
-	is_current_playoffs = this_sim.date >= '2025-09-29'
+	# Setup for current playoffs
+	is_current_playoffs = this_sim.date >= PLAYOFF_START_DATE
 	if is_current_playoffs:
-		wcs = {'AL': ['NYY', 'BOS', 'DET'], 'NL': ['CHC', 'SDP', 'CIN']}
-		divw = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
-		wc_round = [('MIL', 0), ('MIL', 0), ('CHC', 2), ('SDP', 1), ('PHI', 0), ('PHI', 0), ('LAD', 2), ('CIN', 0), 
-					('TOR', 0), ('TOR', 0), ('NYY', 2), ('BOS', 1), ('SEA', 0), ('SEA', 0), ('CLE', 1), ('DET', 2)]
-		div_round = [('MIL', 1), ('CHC', 0), ('PHI', 0), ('LAD', 1), ('TOR', 1), ('NYY', 0), ('SEA', 0), ('DET', 1)]
-		league_round = []
-		ws_round = []
+		# Use precomputed bracket if provided (for performance in simulation loops)
+		if precomputed_bracket is not None:
+			wcs = precomputed_bracket['wcs']
+			divw = precomputed_bracket['divw']
+			wc_round = precomputed_bracket['wc_round']
+			div_round = precomputed_bracket['div_round']
+			league_round = precomputed_bracket['league_round']
+			ws_round = precomputed_bracket['ws_round']
+		else:
+			wcs = PLAYOFF_WILD_CARDS.copy()
+			divw = PLAYOFF_DIV_WINNERS.copy()
+			wc_round = PLAYOFF_WC_BRACKET.copy()
+			if game_data is not None:
+				wc_round, div_round, league_round, ws_round = update_playoff_series_from_games(
+					game_data, wc_round, PLAYOFF_START_DATE
+				)
+			else:
+				div_round, league_round, ws_round = [], [], []
 
-	returns = [divw, wcs] # start with a list of divisional winners and wild card participants
-	#simulate making it to divisional round
+	returns = [divw, wcs]
 	if div_round == []:
 		while len(wc_round) >= 2:
 			team1, wins1 = wc_round.pop(0)
@@ -178,6 +254,24 @@ def get_playoff_probs(this_sim, game_data):
 	else:
 		n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], 50000) # calculate how many seasons we can simulate
 
+	precomputed_bracket = None
+	if this_sim.date >= PLAYOFF_START_DATE:
+		wcs = PLAYOFF_WILD_CARDS.copy()
+		divw = PLAYOFF_DIV_WINNERS.copy()
+		print('\n[PERFORMANCE] Pre-computing playoff bracket from game log...')
+		wc_round, div_round, league_round, ws_round = update_playoff_series_from_games(
+			game_data, PLAYOFF_WC_BRACKET.copy(), PLAYOFF_START_DATE
+		)
+		
+		precomputed_bracket = {
+			'wcs': wcs,
+			'divw': divw,
+			'wc_round': wc_round,
+			'div_round': div_round,
+			'league_round': league_round,
+			'ws_round': ws_round
+		}
+
 	for _ in tqdm(range(n_sims)):
 		#reset the win and loss counts to what they are currently at the start of every simulation
 		for team in current_wins:
@@ -185,7 +279,7 @@ def get_playoff_probs(this_sim, game_data):
 			this_sim.teams[team].season_losses = current_losses[team]
 
 		finish_season(this_sim, remaining_games)
-		outcomes = setup_playoffs(this_sim)
+		outcomes = setup_playoffs(this_sim, game_data=None, precomputed_bracket=precomputed_bracket)
 		
 		#add appearances in each of these rounds to the overall trackers
 		for league in outcomes[0]:
@@ -207,6 +301,7 @@ def get_playoff_probs(this_sim, game_data):
 	return outcomes_df, n_sims
 
 #Example Testing Query
+# import elo
 # this_sim, df = elo.main(scrape = False, save_scrape = False, save_new_scrape = False, print_ratings = False)
 # outcomes_df, n_sims = get_playoff_probs(this_sim, df)
 # print(f"Results based on {n_sims:,} simulated seasons:")
