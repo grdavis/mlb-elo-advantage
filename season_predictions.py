@@ -171,14 +171,14 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 	# Setup for current playoffs
 	is_current_playoffs = this_sim.date >= PLAYOFF_START_DATE
 	if is_current_playoffs:
-		# Use precomputed bracket if provided (for performance in simulation loops)
+		# Get initial bracket state (either from precomputed or from game log)
 		if precomputed_bracket is not None:
 			wcs = precomputed_bracket['wcs']
 			divw = precomputed_bracket['divw']
-			wc_round = precomputed_bracket['wc_round']
-			div_round = precomputed_bracket['div_round']
-			league_round = precomputed_bracket['league_round']
-			ws_round = precomputed_bracket['ws_round']
+			wc_round = precomputed_bracket['wc_round'][:]  # Copy to avoid mutation
+			div_round = precomputed_bracket['div_round'][:]
+			league_round = precomputed_bracket['league_round'][:]
+			ws_round = precomputed_bracket['ws_round'][:]
 		else:
 			wcs = PLAYOFF_WILD_CARDS.copy()
 			divw = PLAYOFF_DIV_WINNERS.copy()
@@ -191,43 +191,80 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 				div_round, league_round, ws_round = [], [], []
 
 	returns = [divw, wcs]
+	
+	# Simulate Division Round from current state (ALWAYS simulate, even with precomputed bracket)
+	div_round_participants = []
 	if div_round == []:
+		# Build from WC winners
 		while len(wc_round) >= 2:
 			team1, wins1 = wc_round.pop(0)
 			team2, wins2 = wc_round.pop(0)
-			div_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhh'), 0))
-	returns.append(div_round[:])
+			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhh')
+			div_round.append((winner, 0))
+			div_round_participants.extend([(team1, wins1), (team2, wins2)])
+	else:
+		# Division round in progress - simulate each series from current state
+		div_round_participants = div_round[:]  # Track all participants for stats
+		winners = []
+		for i in range(0, len(div_round), 2):
+			if i+1 < len(div_round):
+				team1, wins1 = div_round[i]
+				team2, wins2 = div_round[i+1]
+				winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaah')
+				winners.append((winner, 0))
+		div_round = winners  # Use winners for next round simulation
+	returns.append(div_round_participants)
 
-	#simulate making it to the League Championship Round
+	# Simulate League Championship Round
+	league_round_participants = []
 	if league_round == []:
 		while len(div_round) >= 2:
 			team1, wins1 = div_round.pop(0)
-			team2, wins2 = div_round.pop(0) 
-			league_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaah'), 0))
-	returns.append(league_round[:])
+			team2, wins2 = div_round.pop(0)
+			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
+			league_round.append((winner, 0))
+			league_round_participants.extend([(team1, wins1), (team2, wins2)])
+	elif len(league_round) >= 2:
+		# League round already started - track participants and simulate to completion
+		league_round_participants = league_round[:]
+		winners = []
+		for i in range(0, len(league_round), 2):
+			if i+1 < len(league_round):
+				team1, wins1 = league_round[i]
+				team2, wins2 = league_round[i+1]
+				winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
+				winners.append((winner, 0))
+		league_round = winners
+	returns.append(league_round_participants)
 
-	#simulate making it to the WS
+	# Build World Series matchup (don't simulate yet - that happens at the end)
+	ws_round_participants = []
 	if ws_round == []:
+		# Advance winners from league championship
 		while len(league_round) >= 2:
 			team1, wins1 = league_round.pop(0)
 			team2, wins2 = league_round.pop(0)
-			ws_round.append((sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'), 0))
-	returns.append(ws_round)
+			ws_round.extend([(team1, wins1), (team2, wins2)])
+			ws_round_participants.extend([(team1, wins1), (team2, wins2)])
+	elif len(ws_round) >= 2:
+		# WS already started
+		ws_round_participants = ws_round[:]
+	returns.append(ws_round_participants)
 
-    # figure out home team in WS if not specified already
-    # lower ranking number means better record; ensure ws_round has two entries
-	if len(ws_round) == 2:
-		t1, w1 = ws_round[0]
-		t2, w2 = ws_round[1]
-		if rankings.get(t1, float('inf')) <= rankings.get(t2, float('inf')):
-			team1, wins1 = t1, w1
-			team2, wins2 = t2, w2
+	# Simulate WS winner if we have both participants
+	if len(ws_round) >= 2:
+		# WS participants are in ws_round, simulate to get winner
+		team1, wins1 = ws_round[0]
+		team2, wins2 = ws_round[1]
+		# Better record gets home field
+		if rankings.get(team1, float('inf')) <= rankings.get(team2, float('inf')):
+			ws_winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
 		else:
-			team1, wins1 = t2, w2
-			team2, wins2 = t1, w1
-
-	#simulate WS winner
-	returns.append(sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh'))
+			ws_winner = sim_series(this_sim, team2, wins2, team1, wins1, 'hhaaahh')
+		returns.append(ws_winner)
+	else:
+		returns.append(None)  # No WS winner yet
+	
 	return returns
 
 def get_playoff_probs(this_sim, game_data):
@@ -292,7 +329,8 @@ def get_playoff_probs(this_sim, game_data):
 		for team, wins in outcomes[2]: divisional[team] = divisional.get(team, 0) + 1
 		for team, wins in outcomes[3]: championship[team] = championship.get(team, 0) + 1
 		for team, wins in outcomes[4]: world_series[team] = world_series.get(team, 0) + 1
-		ws_winner[outcomes[5]] = ws_winner.get(outcomes[-1], 0) + 1
+		if outcomes[5] is not None:
+			ws_winner[outcomes[5]] = ws_winner.get(outcomes[5], 0) + 1
 
 	for team in this_sim.teams: playoffs[team] = playoffs.get(team, 0)
 	outcomes_df = pd.DataFrame([playoffs, div_wins, divisional, championship, world_series, ws_winner]).T.fillna(0).reset_index()
