@@ -93,11 +93,12 @@ def update_playoff_series_from_games(game_data, wc_round, playoff_start_date='20
 	wc_pairs = {tuple(sorted([wc_round[i][0], wc_round[i+1][0]])) 
 	            for i in range(0, len(wc_round), 2)}
 	
+	# Build dict of matchups with their first game date for chronological sorting
 	all_matchups = {}
 	for _, game in playoff_games.iterrows():
 		pair = tuple(sorted([game['Home'], game['Away']]))
 		if pair not in all_matchups:
-			all_matchups[pair] = (game['Home'], game['Away'])
+			all_matchups[pair] = {'teams': (game['Home'], game['Away']), 'first_game': game['Date']}
 	
 	def build_round(matchup_pairs, wins_needed):
 		round_list = []
@@ -109,20 +110,25 @@ def update_playoff_series_from_games(game_data, wc_round, playoff_start_date='20
 				print(f'[PLAYOFF PARSER] {team1} {wins1}-{wins2} {team2} ({status})')
 		return round_list
 	
-	updated_wc_round = build_round([all_matchups[p] for p in wc_pairs if p in all_matchups], 2)
+	# Separate matchups by round using chronological order
+	# Sort all non-WC matchups by first game date
+	non_wc_matchups = [(p, info) for p, info in all_matchups.items() if p not in wc_pairs]
+	non_wc_matchups.sort(key=lambda x: x[1]['first_game'])
 	
-	seen_pairs = wc_pairs.copy()
-	updated_div_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 3)
+	# Wild Card round
+	updated_wc_round = build_round([all_matchups[p]['teams'] for p in wc_pairs if p in all_matchups], 2)
 	
-	seen_pairs.update(tuple(sorted([updated_div_round[i][0], updated_div_round[i+1][0]])) 
-	                  for i in range(0, len(updated_div_round), 2))
+	# Division Series: next 4 matchups chronologically (2 per league)
+	div_matchups = non_wc_matchups[:4] if len(non_wc_matchups) >= 4 else non_wc_matchups
+	updated_div_round = build_round([info['teams'] for p, info in div_matchups], 3)
 	
-	updated_league_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 4)
+	# Championship Series: next 2 matchups chronologically (1 per league)
+	cs_matchups = non_wc_matchups[4:6] if len(non_wc_matchups) >= 6 else []
+	updated_league_round = build_round([info['teams'] for p, info in cs_matchups], 4)
 	
-	seen_pairs.update(tuple(sorted([updated_league_round[i][0], updated_league_round[i+1][0]])) 
-	                  for i in range(0, len(updated_league_round), 2))
-	
-	updated_ws_round = build_round([m for p, m in all_matchups.items() if p not in seen_pairs], 4)
+	# World Series: next 1 matchup chronologically
+	ws_matchups = non_wc_matchups[6:7] if len(non_wc_matchups) >= 7 else []
+	updated_ws_round = build_round([info['teams'] for p, info in ws_matchups], 4)
 	
 	return updated_wc_round, updated_div_round, updated_league_round, updated_ws_round
 
@@ -201,7 +207,11 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 			team2, wins2 = wc_round.pop(0)
 			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhh')
 			div_round.append((winner, 0))
-			div_round_participants.extend([(team1, wins1), (team2, wins2)])
+			# Only add unique teams (handles byes where team1 == team2)
+			if team1 == team2:
+				div_round_participants.append((team1, wins1))
+			else:
+				div_round_participants.extend([(team1, wins1), (team2, wins2)])
 	else:
 		# Division round in progress - simulate each series from current state
 		div_round_participants = div_round[:]  # Track all participants for stats
