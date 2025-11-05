@@ -1,7 +1,7 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2025-11-04 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2025-11-05 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). For transparency, these recommendations have been triggered for 60% of games and have a -11.0% ROI over the last 7 days. ROI is -7.89% over the last 30 days and -3.66% over the last 365.
+The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). For transparency, these recommendations have been triggered for 75% of games and have a -11.0% ROI over the last 7 days. ROI is -41.57% over the last 30 days and -3.66% over the last 365.
 
 | Date   | Away   | Home   | Away WinP   | Home WinP   | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
 |--------|--------|--------|-------------|-------------|-----------|------------------|-----------|------------------|
@@ -11,12 +11,12 @@ This table summarizes each team's Elo rating and their chances of making it to v
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | LAD    |         1570 |              0 |               6 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
-|  2 | TOR    |         1555 |              0 |              11 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
-|  3 | PHI    |         1550 |              0 |               2 | 100.00%    | 100.00%        | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
-|  4 | MIL    |         1550 |              0 |             -15 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
+|  1 | LAD    |         1570 |              6 |               4 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
+|  2 | TOR    |         1555 |             -5 |              11 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 100.00%    | 0.00%    |
+|  3 | PHI    |         1550 |              0 |               4 | 100.00%    | 100.00%        | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
+|  4 | MIL    |         1550 |              0 |             -18 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
 |  5 | NYY    |         1545 |              0 |              -1 | 100.00%    | 0.00%          | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
-|  6 | CHC    |         1537 |              0 |               2 | 100.00%    | 0.00%          | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
+|  6 | CHC    |         1537 |              0 |               5 | 100.00%    | 0.00%          | 100.00%          | 0.00%      | 0.00%      | 0.00%    |
 |  7 | SDP    |         1534 |              0 |               0 | 100.00%    | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  8 | BOS    |         1534 |              0 |               0 | 100.00%    | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 |  9 | SEA    |         1530 |              0 |              -4 | 100.00%    | 100.00%        | 100.00%          | 100.00%    | 0.00%      | 0.00%    |
