@@ -1,4 +1,4 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2026-01-29 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2026-01-30 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
 The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). For transparency, these recommendations have been triggered for 0% of games and have a 0% ROI over the last 7 days. ROI is 0% over the last 30 days and -3.66% over the last 365.
