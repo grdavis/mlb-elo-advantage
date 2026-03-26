@@ -5,10 +5,16 @@ from tqdm import tqdm
 N_GAMES_TO_SIM = 5000000 # at about 19000 games per second, this targets about a 6 minute runtime no matter how many games remain
 
 # ============================================================================
-# 2025 PLAYOFF BRACKET CONFIGURATION (ONE-TIME SETUP)
-# Update this section when playoffs start each year, then never touch it again!
+# PLAYOFF BRACKET CONFIGURATION — update when each postseason field is set
 # ============================================================================
-PLAYOFF_START_DATE = '2025-09-29'
+# First day of the postseason by year (regular-season rows are strictly before this date).
+PLAYOFF_START_BY_YEAR = {
+	2025: '2025-09-29',
+	2026: '2026-09-29',
+}
+PLAYOFF_START_DATE = PLAYOFF_START_BY_YEAR[2026]
+
+# 2026 placeholders — replace with actual WC seeds and bracket when playoffs begin
 PLAYOFF_WILD_CARDS = {'AL': ['NYY', 'BOS', 'DET'], 'NL': ['CHC', 'SDP', 'CIN']}
 PLAYOFF_DIV_WINNERS = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
 
@@ -24,6 +30,12 @@ PLAYOFF_WC_BRACKET = [
 	('SEA', 0), ('SEA', 0), ('CLE', 0), ('DET', 0)   # SEA(2) gets bye, WC5 vs WC6
 ]
 # ============================================================================
+
+def _regular_season_cutoff_for_year(year):
+	return PLAYOFF_START_BY_YEAR.get(year, f'{year}-09-29')
+
+def _is_regular_season_date(date_str):
+	return date_str < _regular_season_cutoff_for_year(int(date_str[:4]))
 
 def sim_winner(this_sim, home, away, is_playoffs):
 	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
@@ -77,7 +89,7 @@ def count_series_wins(playoff_games, team1, team2):
 			team2_wins += 1
 	return team1_wins, team2_wins
 
-def update_playoff_series_from_games(game_data, wc_round, playoff_start_date='2025-09-29'):
+def update_playoff_series_from_games(game_data, wc_round, playoff_start_date=PLAYOFF_START_DATE):
 	'''Parse game log, update all series scores, auto-detect advancing matchups.'''
 	playoff_games = game_data[
 		(game_data['Date'] >= playoff_start_date) & 
@@ -285,7 +297,7 @@ def get_playoff_probs(this_sim, game_data):
 	'''
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
-	non_playoffs = game_data[game_data['Date'] < '2025-09-29']
+	non_playoffs = game_data[game_data['Date'].map(_is_regular_season_date)]
 	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')]
 	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
 

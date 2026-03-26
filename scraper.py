@@ -121,7 +121,8 @@ def get_section_date(section, previous_date=None):
 def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	'''
 	Visits Baseball Reference season schedule page and grabs all scores on_or_after a date.
-	on_or_after formatted as 'YYYYMMDD'. Output is a DataFrame
+	on_or_after: ISO date string 'YYYY-MM-DD' (lexicographically compared to section dates).
+	Output is a DataFrame
 	'''
 	print(f'Scraping schedule for games on or after {on_or_after}...')
 	all_data = []

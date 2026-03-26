@@ -188,6 +188,18 @@ def sim(df, k_factor, home_adv, snapshots = SNAPSHOT_LOOKBACKS):
 	
 	return this_sim, combo
 
+def _last_date_with_resolved_scores(df):
+	'''Latest calendar date that has both final scores (non-empty). Used as incremental scrape cursor.'''
+	hs, aws = df['Home_Score'], df['Away_Score']
+	mask = hs.notna() & aws.notna()
+	mask &= hs.astype(str).str.strip().ne('')
+	mask &= aws.astype(str).str.strip().ne('')
+	mask &= hs.astype(str).str.lower().ne('nan')
+	mask &= aws.astype(str).str.lower().ne('nan')
+	if not mask.any():
+		return None
+	return df.loc[mask, 'Date'].max()
+
 def main(scrape = True, save_scrape = True, save_new_scrape = True, print_ratings = False):
 	'''
 	By default this method scrapes the latest data up to today that is not already in our dataset, 
@@ -195,17 +207,20 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 	It can also optionally print out the team's Elo ratings sorted from greatest to least
 	'''
 	latest_filepath = utils.get_latest_data_filepath()
-	games_before = latest_filepath[14:-4] #the data does not have games on or after this date
 	df = pd.read_csv(latest_filepath)
-	
-	#if the latest data is not up to date and scrape is true, continue with the scraping
-	if utils.string_to_date(games_before).date() < datetime.today().date() and scrape:
-		#grabs the latest "golden" source of truth schedule
-		new_df = scrape_results_and_schedule(on_or_after = games_before, save_new_scrape = save_new_scrape) 
+	last_resolved = _last_date_with_resolved_scores(df)
+	if last_resolved is None:
+		last_resolved = df['Date'].min()
+	on_or_after = str(last_resolved)
+	last_resolved_d = utils.string_to_date(on_or_after).date()
+	today_d = datetime.today().date()
 
-		#Get a list of dates on which to scrape odds - goes from day after last game in historical data through today
-		#Scrape odds for the days in odds_dates and merge this data with the golden schedule data
-		gb_obj = utils.string_to_date(games_before)
+	# Scrape when we are behind on completed games (cursor from data, not save filename)
+	if scrape and last_resolved_d < today_d:
+		new_df = scrape_results_and_schedule(on_or_after = on_or_after, save_new_scrape = save_new_scrape)
+
+		# Odds from first date to refresh through today (same window as schedule scrape)
+		gb_obj = utils.string_to_date(on_or_after)
 		odds_dates = []
 		for x in range((datetime.today() - gb_obj).days + 1):
 			date = gb_obj + timedelta(days=x)
@@ -220,16 +235,16 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 			odds_df = pd.DataFrame(columns=['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
 		merged_df, n_matched = utils.merge_odds_and_sched(new_df, odds_df)
 		print(f"Matched {n_matched} games from golden schedule with live odds")
-		
-		#combine the merged golden schedule + odds data with the historical, existing data
-		df = df.loc[df['Date'] < games_before] #cut all forward-looking rows from old df
-		df = pd.concat([df, merged_df]) 
+
+		# Drop rows from old df at or after the refresh start, then append merged (golden + odds)
+		df = df.loc[df['Date'] < on_or_after]
+		df = pd.concat([df, merged_df])
 		if save_scrape: df.to_csv(SAVE_PATH, index = False)
 
 	#run the elo sim on the assembled DataFrame
 	sim_out, odf = sim(df, K_FACTOR, HOME_ADVANTAGE)
-	if print_ratings: 
-		print(f'Ratings based on games before {games_before}...')
+	if print_ratings:
+		print(f'Ratings based on games through {last_resolved}...')
 		print(sorted([(team, sim_out.get_elo(team)) for team in sim_out.teams], key = lambda x: x[1]))
 
 	return sim_out, odf
