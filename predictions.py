@@ -82,7 +82,7 @@ def clean_up_ratings(this_sim, game_data):
 	This function returns a DataFrame with one row for each team displaying their current Elo rating and how it has changed
 	in the last 7 and 30. In addition, it shows the teams chances of making the playoffs, winning the division, reaching the
 	divisional round, reaching the championship round, reaching the WS, and winning the WS. These probabilities are achieved
-	by simulating all the remaining games and the playoffs 10000 times
+	by simulating all the remaining games and the playoffs many times (see season_predictions.MIN_PLAYOFF_SIMS)
 	'''
 	out_data = []
 	for team in this_sim.teams:

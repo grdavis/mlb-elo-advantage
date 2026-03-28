@@ -3,6 +3,9 @@ from random import random
 from tqdm import tqdm
 
 N_GAMES_TO_SIM = 5000000 # at about 19000 games per second, this targets about a 6 minute runtime no matter how many games remain
+# Floor so rare events (e.g. last-place club sneaking into WC) show non-zero rates after rounding
+MIN_PLAYOFF_SIMS = 12000
+MAX_PLAYOFF_SIMS = 50000
 
 # ============================================================================
 # PLAYOFF BRACKET CONFIGURATION — update when each postseason field is set
@@ -237,7 +240,7 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 		div_round = winners  # Use winners for next round simulation
 	returns.append(div_round_participants)
 
-	# Simulate League Championship Round
+	# Division Series: div_round has 8 teams (4 NL, 4 AL); produces 4 LDS winners who enter LCS
 	league_round_participants = []
 	if league_round == []:
 		while len(div_round) >= 2:
@@ -246,6 +249,8 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
 			league_round.append((winner, 0))
 			league_round_participants.extend([(team1, wins1), (team2, wins2)])
+		# "Reach CS" = won LDS (four league-championship-series entrants)
+		league_round_participants = league_round[:]
 	elif len(league_round) >= 2:
 		# League round already started - track participants and simulate to completion
 		league_round_participants = league_round[:]
@@ -259,15 +264,26 @@ def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
 		league_round = winners
 	returns.append(league_round_participants)
 
-	# Build World Series matchup (don't simulate yet - that happens at the end)
+	# LCS then WS: league_round must be NL LDS winner, NL LDS winner, AL LDS winner, AL LDS winner
 	ws_round_participants = []
 	if ws_round == []:
-		# Advance winners from league championship
-		while len(league_round) >= 2:
-			team1, wins1 = league_round.pop(0)
-			team2, wins2 = league_round.pop(0)
-			ws_round.extend([(team1, wins1), (team2, wins2)])
-			ws_round_participants.extend([(team1, wins1), (team2, wins2)])
+		if len(league_round) == 4:
+			nl1, nl2, al1, al2 = league_round[0], league_round[1], league_round[2], league_round[3]
+			nl_champ = sim_series(this_sim, nl1[0], nl1[1], nl2[0], nl2[1], 'hhaaahh')
+			al_champ = sim_series(this_sim, al1[0], al1[1], al2[0], al2[1], 'hhaaahh')
+			ws_round = [(nl_champ, 0), (al_champ, 0)]
+			ws_round_participants = [(nl_champ, 0), (al_champ, 0)]
+		elif len(league_round) == 2:
+			# Resumed bracket: both league champions already decided
+			ws_round = [league_round[0], league_round[1]]
+			ws_round_participants = ws_round[:]
+		elif len(league_round) >= 2:
+			# Unexpected shape; fall back to pairing in order
+			while len(league_round) >= 2:
+				team1, wins1 = league_round.pop(0)
+				team2, wins2 = league_round.pop(0)
+				ws_round.extend([(team1, wins1), (team2, wins2)])
+				ws_round_participants.extend([(team1, wins1), (team2, wins2)])
 	elif len(ws_round) >= 2:
 		# WS already started
 		ws_round_participants = ws_round[:]
@@ -309,9 +325,10 @@ def get_playoff_probs(this_sim, game_data):
 	world_series = {}
 	ws_winner = {}
 	if remaining_games.shape[0] == 0:
-		n_sims = 50000  # Use full simulation budget when no games remain
+		n_sims = MAX_PLAYOFF_SIMS
 	else:
-		n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], 50000) # calculate how many seasons we can simulate
+		n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], MAX_PLAYOFF_SIMS)
+		n_sims = max(n_sims, MIN_PLAYOFF_SIMS)
 
 	precomputed_bracket = None
 	if this_sim.date >= PLAYOFF_START_DATE:
@@ -357,8 +374,15 @@ def get_playoff_probs(this_sim, game_data):
 	for team in this_sim.teams: playoffs[team] = playoffs.get(team, 0)
 	outcomes_df = pd.DataFrame([playoffs, div_wins, divisional, championship, world_series, ws_winner]).T.fillna(0).reset_index()
 	outcomes_df.columns = ['Team', 'Playoffs', 'Win Division', 'Reach Div. Rd.', 'Reach CS', 'Reach WS', 'Win WS']
-	rate = outcomes_df.iloc[:, 1:] / n_sims
-	formatted = rate.map('{:.2%}'.format)
+	count_df = outcomes_df.iloc[:, 1:7].astype(int)
+	# Observed rate with 3 decimals; rule-of-three cap when count==0 (~95% binomial upper bound)
+	rule3_pct = 100.0 * 3.0 / n_sims
+	def _fmt_pct(c):
+		c = int(c)
+		if c == 0:
+			return '<{:.3f}%'.format(rule3_pct)
+		return '{:.3f}%'.format(100.0 * c / n_sims)
+	formatted = count_df.apply(lambda col: col.map(_fmt_pct))
 	outcomes_df = pd.concat([outcomes_df[['Team']], formatted], axis=1)
 	return outcomes_df, n_sims
 

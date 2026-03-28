@@ -174,7 +174,8 @@ def save_markdown_df(predictions, ratings, date_str, performance, sims = 50000):
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
-		md.write(f"This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on {sims} simulations of the rest of the regular season and playoffs\n\n")
+		md.write(f"This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on {sims} simulations of the rest of the regular season and playoffs. ")
+		md.write("Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when the outcome did not occur in any simulation.\n\n")
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
 
