@@ -357,7 +357,9 @@ def get_playoff_probs(this_sim, game_data):
 	for team in this_sim.teams: playoffs[team] = playoffs.get(team, 0)
 	outcomes_df = pd.DataFrame([playoffs, div_wins, divisional, championship, world_series, ws_winner]).T.fillna(0).reset_index()
 	outcomes_df.columns = ['Team', 'Playoffs', 'Win Division', 'Reach Div. Rd.', 'Reach CS', 'Reach WS', 'Win WS']
-	outcomes_df.iloc[:, 1:] = (outcomes_df.iloc[:, 1:] / n_sims).applymap('{:.2%}'.format)
+	rate = outcomes_df.iloc[:, 1:] / n_sims
+	formatted = rate.map('{:.2%}'.format)
+	outcomes_df = pd.concat([outcomes_df[['Team']], formatted], axis=1)
 	return outcomes_df, n_sims
 
 #Example Testing Query

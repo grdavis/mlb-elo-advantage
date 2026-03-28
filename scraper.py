@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import pandas as pd
 from utils import BR_TEAM_MAP, SO_TEAM_MAP, date_to_string, string_to_date
 
@@ -105,18 +106,36 @@ def scrape_odds(date_str):
 
 	return pd.DataFrame(day_stats, columns = ['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
 
+def _mlb_today_date_string():
+	'''Calendar date in US Eastern (BR lists games in Eastern).'''
+	return date_to_string(datetime.now(ZoneInfo('America/New_York')))
+
 def get_section_date(section, previous_date=None):
-    date_header = section.find('h3').text
-    if date_header == "Today's Games": # Check if games have scores (indicating these aren't actually today's games)
-        rows = section.find_all("p")
-        has_scores = any(len(row.text.split('\n')[1:-2]) == 5 for row in rows)
-        if has_scores: # If we have scores, this must be the day after the previous section
-            if previous_date:
-                next_date = datetime.strptime(previous_date, '%Y-%m-%d') + timedelta(days=1)
-                return date_to_string(next_date)
-            else: return date_to_string(datetime.today())
-        else: return date_to_string(datetime.today()) # No scores means these are actually today's games
-    else: return date_to_string(datetime.strptime(date_header[date_header.find(',')+2:], '%B %d, %Y')) # Normal date header processing
+	'''
+	Map each schedule block to a calendar date.
+
+	Baseball Reference inserts a "Today's Games" block (h3 + span#today) between explicit
+	date headers. The old heuristic used final scores to decide the calendar day; once
+	games go final, that wrongly bumped the section to the *next* day, colliding with
+	the following dated header. That mis-dated games, duplicated matchups vs the next
+	real day, and broke odds merges.
+
+	Rule: "Today's Games" is always the calendar day after the previous explicit section.
+	If there is no previous section, use Eastern "today".
+	'''
+	h3 = section.find('h3')
+	if h3 is None:
+		return _mlb_today_date_string()
+	date_header = h3.get_text()
+	is_todays_games = (
+		date_header.strip() == "Today's Games"
+		or h3.find('span', id='today') is not None
+	)
+	if is_todays_games:
+		if previous_date:
+			return date_to_string(string_to_date(previous_date) + timedelta(days=1))
+		return _mlb_today_date_string()
+	return date_to_string(datetime.strptime(date_header[date_header.find(',')+2:], '%B %d, %Y'))
 
 def scrape_results_and_schedule(on_or_after, save_new_scrape = True):
 	'''
