@@ -2,7 +2,15 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+try:
+	from zoneinfo import ZoneInfo
+except ModuleNotFoundError:  # Python < 3.9
+	try:
+		from backports.zoneinfo import ZoneInfo
+	except ModuleNotFoundError as e:
+		raise ImportError(
+			'Need IANA timezones: use Python 3.9+, or pip install backports.zoneinfo'
+		) from e
 import pandas as pd
 from utils import BR_TEAM_MAP, SO_TEAM_MAP, date_to_string, string_to_date
 
