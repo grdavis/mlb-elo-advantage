@@ -4,7 +4,10 @@ import pandas as pd
 from elo import sim, K_FACTOR, HOME_ADVANTAGE
 from utils import *
 from tqdm import tqdm
-from predictions import assemble_results_and_predictions, convert_to_betting_rows
+from predictions import (
+    assemble_results_and_predictions, convert_to_betting_rows, qualifying_bets,
+    ADV_TO_USE, ADV_THRESHOLD, MAX_UNDERDOG_ML,
+)
 import plotly.express as px
 
 DIAG_DIR = 'OUTPUTS/diagnostics'
@@ -45,7 +48,7 @@ def advantage_cutoff_tuning(adv_to_use: str, end_early: str = None, start_late: 
     possible_triggers = np.round(np.arange(0.01, 0.201, 0.01), 2)
     rows = []
     for t in possible_triggers:
-        sel = mdf.loc[mdf['ADVANTAGE'] >= t]
+        sel = qualifying_bets(mdf, t) if adv_to_use == 'ADV' else mdf.loc[mdf['ADVANTAGE'] >= t]
         if sel.empty or sel['WAGER'].sum() == 0:
             rows.append([t, 0, 0.0, 0.0, 0.0])
             continue
@@ -65,25 +68,28 @@ def advantage_cutoff_tuning(adv_to_use: str, end_early: str = None, start_late: 
     return out
 
 '''
-Performance for 7/30/23 through 8/6/25 using ADV_PCT 
-choose threshold 0.11 for 3.7% ROI and 11% bet rate
-    adv_threshold  games_bet  winnings   ROI  percent_games_bet
-0            0.01       2686    -45.42 -1.55              60.70
-1            0.02       2391    -53.06 -2.05              54.03
-2            0.03       2078    -71.21 -3.19              46.96
-3            0.04       1811    -73.69 -3.82              40.93
-4            0.05       1557    -58.23 -3.55              35.19
-5            0.06       1313    -34.12 -2.48              29.67
-6            0.07       1104    -29.35 -2.57              24.95
-7            0.08        920    -43.64 -4.60              20.79
-8            0.09        774    -17.43 -2.19              17.49
-9            0.10        622     18.92  2.97              14.06
-10           0.11        487     18.32  3.70              11.01
-11           0.12        365      4.42  1.19               8.25
-12           0.13        271      1.42  0.52               6.12
-13           0.14        187     10.60  5.61               4.23
-14           0.15        112     -3.90 -3.47               2.53
-15           0.16         52     -1.79 -3.43               1.18
+Diagnosis (2026-09): rolling 365-day ROI of ADV_PCT>=0.11 collapsed to about -7% (30-day ~-24%).
+This was not a one-month fluke.
+
+What went wrong
+- Team Elo is strictly worse than the moneyline market on Brier and accuracy every season.
+  Market residual vs Elo is largely starting-pitcher quality (corr ~0.45 with Game Score gap).
+- ADV_PCT inflates edges on longshots. Those bets were disproportionately away underdogs
+  whose listed "value" was an ace vs a replacement starter the book already priced.
+- The published 3.7% (7/30/23-8/6/25 at 0.11) was in-sample, and analysis.py trimmed the
+  top/bottom 5% of advantages while production did not. Recomputed untrimmed ADV_PCT>=0.11
+  on that same window is about -1.6%. 2023 was the only clearly positive year; 2024-2026
+  reverted toward a slightly negative expectation as vig on ScoresAndOdds rose (~2% to ~4%).
+- Aug 2025 K/HA retune (Brier on all history) did not create the collapse and is left as-is.
+
+Fix (walk-forward; thresholds locked on 2019-2023 only)
+- Add 538-style causal rolling Game Score adjustment to pre-game win probabilities.
+- Bet absolute ADV >= 0.05, and never bet ML longer than +165.
+- Keep the first stored moneyline snapshot instead of overwriting with later live cells.
+
+Honest holdout (pitcher + ADV>=0.05 + ML<=+165): 2024 ~-1.5%, 2025 ~+1.7%, 2026 YTD ~+0.8%,
+trailing 365 ~+0.7% vs previous 365 ~-7.4% on ADV_PCT 0.11 without pitchers. Train years remain
+slightly negative; this is not a claim of a large market-beating edge.
 '''
 
 '''
@@ -143,6 +149,32 @@ def kelly_tuning(adv_to_use: str = 'ADV_PCT', wager_type: str = 'kelly'):
         adv_profits.append([adv_t, aggs.loc['size', 'K_WAGERED'], aggs.loc['sum', 'K_PROFITED'], round(aggs.loc['sum', 'K_PROFITED'] / aggs.loc['sum', 'K_WAGERED'] * 100, 2), round(aggs.loc['size', 'K_WAGERED'] / combo.shape[0] * 100)])
     print(pd.DataFrame(adv_profits, columns = ['trigger_threshold', 'games_bet', 'winnings', 'ROI', 'percent_games_bet']))
 
+def production_strategy_report():
+    '''Print yearly ROI of the production rule (pitcher-adjusted ADV + longshot cap).'''
+    combo = assemble_results_and_predictions()
+    combo['year'] = combo['Date'].str[:4]
+    print(f'Production rule: {ADV_TO_USE}>={ADV_THRESHOLD} and ML<={MAX_UNDERDOG_ML}')
+    rows = []
+    for label, mask in [
+        ('2019-2023', combo['Date'].between('2019-01-01', '2023-12-31')),
+        ('2024', combo['year'] == '2024'),
+        ('2025', combo['year'] == '2025'),
+        ('2026', combo['year'] == '2026'),
+        ('trailing_365', combo['Date'] >= '2025-09-09'),
+        ('trailing_30', combo['Date'] >= '2026-08-09'),
+    ]:
+        g = combo.loc[mask]
+        if g.empty:
+            continue
+        mdf = convert_to_betting_rows(g, ADV_TO_USE)
+        sel = qualifying_bets(mdf, ADV_THRESHOLD)
+        w = sel['WAGER'].sum() if len(sel) else 0
+        p = sel['PROFIT'].sum() if len(sel) else 0
+        n = len(sel)
+        roi = (p / w * 100) if w else float('nan')
+        rows.append([label, len(g), n, round(n / max(len(g), 1) * 100, 1), round(p, 2), round(roi, 2)])
+    print(pd.DataFrame(rows, columns=['window', 'games', 'bets', 'bet_rate', 'profit', 'ROI']))
+
+
 if __name__ == '__main__':
-    advantage_cutoff_tuning('ADV_PCT', start_late='2023-07-30', end_early='2025-08-06')  # last 2.5 seasons
-    pass
+    production_strategy_report()

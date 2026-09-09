@@ -169,7 +169,9 @@ def save_markdown_df(predictions, ratings, date_str, performance, sims = 50000):
 	with open(f"{DOCS_FOLDER}/index.md", 'w') as md:
 		md.write(f'# MLB Elo Game Predictions and Playoff Probabilities for {date_str} - @grdavis\n')
 		md.write("Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.\n\n")
-		md.write("The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). ")
+		md.write("Win probabilities include a starting-pitcher Game Score adjustment (team Elo does not know who is on the mound; the market does). ")
+		md.write("The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. ")
+		md.write("Those rules were locked on 2019-2023 data (not the recent losing window). ")
 		md.write(f"For transparency, these recommendations have been triggered for {b7}% of games and have a {r7}% ROI over the last 7 days. ROI is {r30}% over the last 30 days and {r365}% over the last 365.\n\n")
 		predictions.to_markdown(buf = md, index = False)
 		md.write('\n\n')

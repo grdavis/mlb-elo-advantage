@@ -20,9 +20,9 @@ References describing the approach:
 - FiveThirtyEight MLB model explainer: https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
 
 ## Features
-- Elo engine with season carry-over and playoff adjustments
+- Elo engine with season carry-over, playoff adjustments, and starting-pitcher Game Score adjustments
 - Daily scrape-and-merge pipeline for schedule, results, and odds
-- Win probability and “advantage” signals versus market odds
+- Win probability and “advantage” signals versus market odds (absolute edge, longshot cap)
 - Backtesting utilities for threshold selection and parameter tuning
 - Playoff bracket simulation and team advancement probabilities
 - Automated publishing of predictions and ratings to `docs/index.md`
