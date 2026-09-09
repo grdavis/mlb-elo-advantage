@@ -87,8 +87,8 @@ Fix (walk-forward; thresholds locked on 2019-2023 only)
 - Bet absolute ADV >= 0.05, and never bet ML longer than +165.
 - Keep the first stored moneyline snapshot instead of overwriting with later live cells.
 
-Honest holdout (pitcher + ADV>=0.05 + ML<=+165): 2024 ~-1.5%, 2025 ~+1.7%, 2026 YTD ~+0.8%,
-trailing 365 ~+0.7% vs previous 365 ~-7.4% on ADV_PCT 0.11 without pitchers. Train years remain
+Honest holdout (pitcher + ADV>=0.05 + ML<=+165): 2024 ~-0.9%, 2025 ~+2.7%, 2026 YTD ~+0.8%,
+trailing 365 ~+1.5% vs previous 365 ~-7.4% on ADV_PCT 0.11 without pitchers. Train years remain
 slightly negative; this is not a claim of a large market-beating edge.
 '''
 

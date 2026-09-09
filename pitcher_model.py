@@ -258,22 +258,28 @@ def fetch_all_pitcher_logs(pitcher_ids, force: bool = False, max_workers: int = 
 
 
 def build_rolling_gs(logs: pd.DataFrame, span: int = ROLLING_SPAN) -> pd.DataFrame:
-    """Causal rolling Game Score (prior starts only) for every pitcher start."""
+    """Causal rolling Game Score.
+
+    rolling_gs: pre-game rating for a start on that date (prior starts only).
+    gs_after: rating after the start, used as the as-of rating for later games
+    (including future slates where the pitcher has no row on the game date).
+    """
     if logs.empty:
         return logs
     logs = logs.sort_values(['pitcher_id', 'Date']).copy()
     parts = []
     for pid, g in logs.groupby('pitcher_id', sort=False):
         g = g.sort_values('Date').copy()
-        prior = g['game_score'].shift(1)
         g['starts_prior'] = np.arange(len(g))
+        prior = g['game_score'].shift(1)
         g['rolling_gs'] = prior.ewm(span=span, min_periods=1).mean()
-        # shrink toward 50 when few prior starts
-        w = np.minimum(g['starts_prior'] / float(MIN_STARTS_FOR_FULL_WEIGHT), 1.0)
-        g['rolling_gs'] = 50.0 * (1 - w) + g['rolling_gs'].fillna(50.0) * w
+        w_pre = np.minimum(g['starts_prior'] / float(MIN_STARTS_FOR_FULL_WEIGHT), 1.0)
+        g['rolling_gs'] = 50.0 * (1 - w_pre) + g['rolling_gs'].fillna(50.0) * w_pre
+        incl = g['game_score'].ewm(span=span, min_periods=1).mean()
+        w_post = np.minimum((g['starts_prior'] + 1) / float(MIN_STARTS_FOR_FULL_WEIGHT), 1.0)
+        g['gs_after'] = 50.0 * (1 - w_post) + incl * w_post
         parts.append(g)
-    out = pd.concat(parts, ignore_index=True)
-    return out
+    return pd.concat(parts, ignore_index=True)
 
 
 def ensure_pitcher_cache(force: bool = False) -> tuple:
@@ -337,6 +343,33 @@ def _dedupe_starters(starters: pd.DataFrame) -> pd.DataFrame:
     return s
 
 
+def _asof_pitcher_rating(games: pd.DataFrame, pid_col: str, rolling: pd.DataFrame) -> pd.Series:
+    """Last post-start GS strictly before the game date (no same-day leakage)."""
+    left = pd.DataFrame({
+        '_row': np.arange(len(games)),
+        'Date': pd.to_datetime(games['Date']),
+        pid_col: games[pid_col].values,
+    })
+    right = rolling[['pitcher_id', 'Date', 'gs_after']].copy()
+    right['Date'] = pd.to_datetime(right['Date'])
+    right[pid_col] = pd.to_numeric(right['pitcher_id'], errors='coerce')
+    right = right.rename(columns={'Date': 'pdate', 'gs_after': '_gs'})
+    out = np.full(len(games), np.nan)
+    for pid, lg in left.groupby(pid_col, sort=False):
+        if pd.isna(pid):
+            continue
+        rg = right.loc[right[pid_col] == pid, ['pdate', '_gs']].sort_values('pdate')
+        if rg.empty:
+            continue
+        lg = lg.sort_values('Date')
+        m = pd.merge_asof(
+            lg, rg, left_on='Date', right_on='pdate',
+            direction='backward', allow_exact_matches=False,
+        )
+        out[m['_row'].to_numpy()] = m['_gs'].to_numpy()
+    return pd.Series(out, index=games.index)
+
+
 def attach_pitchers_to_games(games: pd.DataFrame, starters: pd.DataFrame | None = None,
                              rolling: pd.DataFrame | None = None) -> pd.DataFrame:
     """Left-join starter IDs and pre-game rolling GS onto a game log / combo frame."""
@@ -355,27 +388,13 @@ def attach_pitchers_to_games(games: pd.DataFrame, starters: pd.DataFrame | None 
         on=['Date', 'Home', 'Away', 'matchup_on_date'],
         how='left',
     )
-    st['home_pitcher_id'] = pd.to_numeric(st['home_pitcher_id'], errors='coerce')
-    st['away_pitcher_id'] = pd.to_numeric(st['away_pitcher_id'], errors='coerce')
+    for col in ['home_pitcher_id', 'away_pitcher_id']:
+        merged[col] = pd.to_numeric(merged[col], errors='coerce')
     roll = rolling.copy()
     roll['Date'] = roll['Date'].astype(str).str[:10]
     roll['pitcher_id'] = pd.to_numeric(roll['pitcher_id'], errors='coerce')
-    roll = roll[['pitcher_id', 'Date', 'rolling_gs', 'starts_prior', 'game_score']]
-    roll_h = roll.rename(columns={
-        'pitcher_id': 'home_pitcher_id', 'Date': 'Date',
-        'rolling_gs': 'home_rolling_gs', 'starts_prior': 'home_starts_prior',
-        'game_score': 'home_gs_actual',
-    })
-    roll_a = roll.rename(columns={
-        'pitcher_id': 'away_pitcher_id', 'Date': 'Date',
-        'rolling_gs': 'away_rolling_gs', 'starts_prior': 'away_starts_prior',
-        'game_score': 'away_gs_actual',
-    })
-    # rolling GS is stored on the date of that pitcher's start; join on date+id
-    merged = merged.merge(roll_h, on=['Date', 'home_pitcher_id'], how='left')
-    merged = merged.merge(roll_a, on=['Date', 'away_pitcher_id'], how='left')
-    merged['home_rolling_gs'] = merged['home_rolling_gs'].fillna(50.0)
-    merged['away_rolling_gs'] = merged['away_rolling_gs'].fillna(50.0)
+    merged['home_rolling_gs'] = _asof_pitcher_rating(merged, 'home_pitcher_id', roll).fillna(50.0)
+    merged['away_rolling_gs'] = _asof_pitcher_rating(merged, 'away_pitcher_id', roll).fillna(50.0)
     return merged
 
 
