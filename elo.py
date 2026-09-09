@@ -6,6 +6,10 @@ import random
 '''
 MLB ELO methodology taken from https://www.baseballprospectus.com/news/article/5247/lies-damned-lies-we-are-elo/
 and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
+
+Team ratings are updated from game results only. Starting-pitcher Game Score
+adjustments are applied at prediction time (see pitcher_model.py), matching 538's
+split between Elo ratings and pitcher-adjusted win probabilities.
 '''
 
 K_FACTOR = 4.25 #updated from 4 on 8/9/25

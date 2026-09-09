@@ -22,12 +22,15 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute py script
+        # predictions.py scrapes BR + ScoresAndOdds, then refreshes
+        # DATA/pitchers/*.csv from statsapi.mlb.com before publishing.
         run: python predictions.py
           
       - name: commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # Includes updated game logs, docs/index.md, and the pitcher cache
           git add -A
           git commit -m "update data and make predictions" -a
           

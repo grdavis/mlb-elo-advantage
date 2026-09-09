@@ -30,6 +30,7 @@ def assemble_results_and_predictions():
     # Starter Game Score adjustment (538-style). Team Elo does not know who is
     # pitching; the betting market does. Without this, "value" bets clustered on
     # weak-starter underdogs and lost to the book.
+    # Historical ROI uses the same on-disk pitcher cache the daily refresh writes.
     starters, rolling = pitcher_model.ensure_pitcher_cache()
     combo = pitcher_model.attach_pitchers_to_games(combo, starters, rolling)
     combo = pitcher_model.apply_pitcher_probs(combo, scale=pitcher_model.DEFAULT_GS_TO_ELO)
@@ -93,12 +94,10 @@ def eval_recent_performance(recent_days, adv_to_use, threshold, combo=None):
 
 def odds_needed(winp, adv_type):
 	'''
-	Given an elo-predicted win probability, calculates the odds we need to see to have a certain "advantage".
-	The thresholds for an advantage have been selected via backtesting. One methodology looks for an absolute
-	difference in predicted and implied win probability. Another looks for a percentage difference between
-	predicted and implied win probability. This function returns the odds needed to trigger based on adv_type
-	- adv_type: should be a string 'ADV' to indicate we want to use the absolute difference method 
-				it could be anything else to indicate we want to use the percentage difference method
+	Given a pitcher-adjusted Elo win probability, return the moneyline we need
+	to have ADV_THRESHOLD of absolute edge vs the bettable implied probability.
+	Sides that would only clear the edge at prices longer than MAX_UNDERDOG_ML
+	are marked n/a (we do not bet those longshots).
 	'''
 	if adv_type == 'ADV':
 		original_implied = (winp - ADV_THRESHOLD)
@@ -134,18 +133,25 @@ def clean_up_ratings(this_sim, game_data):
 	season_probs, n_sims = get_playoff_probs(this_sim, game_data)
 	return pd.merge(ratings_df, season_probs, on = 'Team', how = 'inner'), n_sims
 
-def make_predictions(this_sim, df, pred_date = None):
+def make_predictions(this_sim, df, pred_date = None, starters=None, rolling=None):
 	'''
 	Defaults to making predictions for every game from today onwards. 
 	pred_date could be used to specify a specific date to predict in format "YYYY-MM-DD"
 	Output is a list of every game predicted in the format: 
-	[Date, Away, Home, Away WinP, Home WinP, Away ML, Away Threshold, Home ML, Home Threshold]
+	[Date, Away, Home, Away Pitcher, Home Pitcher, Away WinP, Home WinP, Away ML, Away Threshold, Home ML, Home Threshold]
 	Output presented as a plotly table and saved to markdown for presentation on GitHub pages
 	'''
-	starters, rolling = pitcher_model.ensure_pitcher_cache()
+	if starters is None or rolling is None:
+		starters, rolling = pitcher_model.ensure_pitcher_cache()
 	keyed = df.copy()
 	keyed['matchup_on_date'] = keyed.groupby(['Date', 'Home', 'Away']).cumcount() + 1
-	adj_map = pitcher_model.pitcher_adj_lookup(keyed, starters, rolling)
+	attached = pitcher_model.attach_pitchers_to_games(keyed, starters, rolling)
+	adj_map = {}
+	pitcher_names = {}
+	for _, r in attached.iterrows():
+		key = (str(r['Date'])[:10], r['Home'], r['Away'], int(r['matchup_on_date']))
+		adj_map[key] = pitcher_model.pitcher_elo_adj(r['home_rolling_gs'], r['away_rolling_gs'])
+		pitcher_names[key] = (r.get('away_pitcher') or '', r.get('home_pitcher') or '')
 
 	preds = []
 	for index, row in keyed.iterrows():
@@ -156,12 +162,19 @@ def make_predictions(this_sim, df, pred_date = None):
 			#if prediction date specified, skip over all dates not equal to the prediction date
 			if row['Date'] != pred_date: continue
 		is_playoffs = True if row['Date'][5:7] in ['10', '11'] else False
-		adj = adj_map.get((str(row['Date'])[:10], row['Home'], row['Away'], int(row['matchup_on_date'])), 0.0)
+		key = (str(row['Date'])[:10], row['Home'], row['Away'], int(row['matchup_on_date']))
+		adj = adj_map.get(key, 0.0)
+		away_p, home_p = pitcher_names.get(key, ('', ''))
+		if pd.isna(away_p):
+			away_p = ''
+		if pd.isna(home_p):
+			home_p = ''
 		winph = this_sim.predict_home_winp(row['Home'], row['Away'], is_playoffs, pitcher_adj=adj)
-		preds.append([row['Date'], row['Away'], row['Home'], round(100-winph*100, 2), round(100*winph, 2), 
+		preds.append([row['Date'], row['Away'], row['Home'], away_p, home_p,
+					round(100-winph*100, 2), round(100*winph, 2), 
 					row['Away_ML'], odds_needed(1 - winph, ADV_TO_USE), row['Home_ML'], odds_needed(winph, ADV_TO_USE)])
 	
-	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
+	output_df = pd.DataFrame(preds, columns = ["Date", "Away", "Home", "Away Pitcher", "Home Pitcher", "Away WinP", "Home WinP", "Away ML", "Away Threshold", "Home ML", "Home Threshold"])
 	utils.table_output(output_df, 'Game Predictions Based on Ratings through ' + this_sim.date)
 	t = ADV_PCT_THRESHOLD if ADV_TO_USE == 'ADV_PCT' else ADV_THRESHOLD
 	combo = assemble_results_and_predictions()
@@ -182,10 +195,12 @@ def main():
 	'''
 	this_sim, df = elo.main(scrape = True, save_scrape = True, save_new_scrape = False, print_ratings = False)
 	try:
-		pitcher_model.refresh_pitcher_cache()
+		starters, rolling = pitcher_model.refresh_pitcher_cache()
 	except Exception as e:
 		print(f'Pitcher cache refresh failed ({e}); using existing cache')
-	make_predictions(this_sim, df, pred_date = utils.date_to_string(datetime.today()))
+		starters, rolling = pitcher_model.ensure_pitcher_cache()
+	make_predictions(this_sim, df, pred_date = utils.date_to_string(datetime.today()),
+					 starters=starters, rolling=rolling)
 	utils.clean_up_old_outputs_and_data()
 
 if __name__ == '__main__':

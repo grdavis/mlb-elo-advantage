@@ -1,28 +1,28 @@
 # MLB Elo Game Predictions and Playoff Probabilities for 2026-09-08 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-The thresholds indicate at what odds the model thinks there is value in betting on a team. These thresholds were selected via backtesting over the last 2 years (2.7K games). For transparency, these recommendations have been triggered for 17% of games and have a -24.26% ROI over the last 7 days. ROI is -24.31% over the last 30 days and -7.81% over the last 365.
+Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 6% of games and have a -100.0% ROI over the last 7 days. ROI is -26.38% over the last 30 days and 1.51% over the last 365.
 
-| Date       | Away   | Home   |   Away WinP |   Home WinP |   Away ML |   Away Threshold |   Home ML |   Home Threshold |
-|:-----------|:-------|:-------|------------:|------------:|----------:|-----------------:|----------:|-----------------:|
-| 2026-09-08 | CLE    | BAL    |       47.24 |       52.76 |       102 |             +135 |      -123 |             +110 |
-| 2026-09-08 | MIN    | DET    |       42.97 |       57.03 |       114 |             +158 |      -137 |             -106 |
-| 2026-09-08 | NYM    | FLA    |       47.25 |       52.75 |       103 |             +135 |      -124 |             +110 |
-| 2026-09-08 | HOU    | PHI    |       41.23 |       58.77 |       119 |             +169 |      -143 |             -113 |
-| 2026-09-08 | ANA    | BOS    |       33.44 |       66.56 |       123 |             +232 |      -149 |             -150 |
-| 2026-09-08 | COL    | NYY    |       31.34 |       68.66 |       267 |             +254 |      -340 |             -162 |
-| 2026-09-08 | TBD    | ATL    |       45.22 |       54.78 |      -105 |             +145 |      -114 |             +103 |
-| 2026-09-08 | PIT    | CHW    |       46.23 |       53.77 |       120 |             +140 |      -145 |             +106 |
-| 2026-09-08 | ARI    | KCR    |       51.75 |       48.25 |      -120 |             +114 |      -101 |             +130 |
-| 2026-09-08 | CHC    | MIL    |       44.98 |       55.02 |       178 |             +147 |      -219 |             +102 |
-| 2026-09-08 | TOR    | OAK    |       58.3  |       41.7  |      -186 |             -111 |       153 |             +166 |
-| 2026-09-08 | WSN    | SDP    |       40.44 |       59.56 |       155 |             +174 |      -188 |             -116 |
-| 2026-09-08 | TEX    | SEA    |       47.88 |       52.12 |       113 |             +132 |      -136 |             +113 |
-| 2026-09-08 | STL    | SFG    |       50.38 |       49.62 |      -110 |             +120 |      -110 |             +124 |
-| 2026-09-08 | CIN    | LAD    |       36.06 |       63.94 |       259 |             +208 |      -329 |             -136 |
+| Date       | Away   | Home   | Away Pitcher    | Home Pitcher      |   Away WinP |   Home WinP |   Away ML | Away Threshold   |   Home ML | Home Threshold   |
+|:-----------|:-------|:-------|:----------------|:------------------|------------:|------------:|----------:|:-----------------|----------:|:-----------------|
+| 2026-09-08 | CLE    | BAL    | Tanner Bibee    | Brandon Young     |       47.26 |       52.74 |       102 | +137             |      -123 | +109             |
+| 2026-09-08 | MIN    | DET    | Dean Kremer     | Drew Anderson     |       41.19 |       58.81 |       114 | n/a              |      -137 | -116             |
+| 2026-09-08 | NYM    | FLA    | Sean Manaea     | Sandy Alcantara   |       44.9  |       55.1  |       103 | +151             |      -124 | -100             |
+| 2026-09-08 | HOU    | PHI    | Hayden Wesneski | Andrew Painter    |       41.49 |       58.51 |       119 | n/a              |      -143 | -115             |
+| 2026-09-08 | ANA    | BOS    | Reid Detmers    | Patrick Sandoval  |       36.31 |       63.69 |       123 | n/a              |      -149 | -142             |
+| 2026-09-08 | COL    | NYY    | Gabriel Hughes  | Cam Schlittler    |       27.88 |       72.12 |       267 | n/a              |      -340 | -204             |
+| 2026-09-08 | TBD    | ATL    | Freddy Peralta  | AJ Smith-Shawver  |       46.89 |       53.11 |      -105 | +139             |      -114 | +108             |
+| 2026-09-08 | PIT    | CHW    | Bubba Chandler  | Sean Burke        |       45.9  |       54.1  |       120 | +145             |      -145 | +104             |
+| 2026-09-08 | ARI    | KCR    | Corbin Burnes   | Michael Wacha     |       52.65 |       47.35 |      -120 | +110             |      -101 | +136             |
+| 2026-09-08 | CHC    | MIL    | David Peterson  | Jacob Misiorowski |       42.33 |       57.67 |       178 | n/a              |      -219 | -111             |
+| 2026-09-08 | TOR    | OAK    | José Soriano    | Jack Perkins      |       60.25 |       39.75 |      -186 | -123             |       153 | n/a              |
+| 2026-09-08 | WSN    | SDP    | Riley Cornelio  | Casey Mize        |       42.59 |       57.41 |       155 | n/a              |      -188 | -110             |
+| 2026-09-08 | TEX    | SEA    | Cal Quantrill   | Bryce Miller      |       51.55 |       48.45 |       113 | +115             |      -136 | +130             |
+| 2026-09-08 | STL    | SFG    | Quinn Mathews   | Landen Roupp      |       50.36 |       49.64 |      -110 | +120             |      -110 | +124             |
+| 2026-09-08 | CIN    | LAD    | Nick Lodolo     | Tarik Skubal      |       33.09 |       66.91 |       259 | n/a              |      -329 | -163             |
 
 # Team Elo Ratings
-This table summarizes each team's Elo rating and their chances of making it to various stages of the postseason based on 18867 simulations of the rest of the regular season and playoffs. Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when the outcome did not occur in any simulation.
+This table summarizes each team's Elo rating (updated from game results only; pitcher adjustments are pre-game) and their chances of making it to various stages of the postseason based on 18867 simulations of the rest of the regular season and playoffs. Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when the outcome did not occur in any simulation.
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|

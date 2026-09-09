@@ -8,12 +8,14 @@ This project revives a streamlined version of FiveThirtyEight’s MLB Elo model 
 
 - Uses an Elo engine inspired by public descriptions from Baseball Prospectus and FiveThirtyEight.
 - Scrapes a “golden” schedule and results from Baseball Reference and enriches with moneyline/total odds from ScoresAndOdds.
+- Adjusts pre-game win probabilities with starting-pitcher rolling Game Score from the MLB Stats API (team Elo does not know who is pitching; the market does).
 - Produces daily game win probabilities, value thresholds relative to market odds, and publishes markdown tables to GitHub Pages.
 - Simulates the rest of the season and playoffs to estimate postseason probabilities for each team.
 
 Special thanks to the data sources:
 - Baseball Reference (schedule/results): https://www.baseball-reference.com/
 - ScoresAndOdds (odds): https://www.scoresandodds.com/mlb
+- MLB Stats API (probable starters and pitcher game logs): https://statsapi.mlb.com/
 
 References describing the approach:
 - Baseball Prospectus overview of Elo: https://www.baseballprospectus.com/news/article/5247/lies-damned-lies-we-are-elo/
@@ -21,11 +23,28 @@ References describing the approach:
 
 ## Features
 - Elo engine with season carry-over, playoff adjustments, and starting-pitcher Game Score adjustments
-- Daily scrape-and-merge pipeline for schedule, results, and odds
-- Win probability and “advantage” signals versus market odds (absolute edge, longshot cap)
+- Daily scrape-and-merge pipeline for schedule, results, odds, and probable pitchers
+- Win probability and “advantage” signals versus market odds (absolute 5pp edge, no bets longer than +165)
 - Backtesting utilities for threshold selection and parameter tuning
 - Playoff bracket simulation and team advancement probabilities
 - Automated publishing of predictions and ratings to `docs/index.md`
+
+## Starting-pitcher pipeline
+Team Elo is a season-long rating. Betting markets price the starter, so pitcher-blind Elo systematically “found value” on weak-starter underdogs. The daily job now:
+
+1. Pulls the current season schedule with `probablePitcher` from the MLB Stats API (`pitcher_model.refresh_pitcher_cache`).
+2. Refreshes game logs for pitchers listed on games in the last 16 days **and** remaining-season listed probables, then rebuilds a causal rolling Game Score (prior starts only; rookies / missing data default to league-average 50).
+3. Adds `(home GS − away GS) × 1.4` Elo to the home side **at prediction time only**. Team Elo still updates from game results (`elo.py`); the pitcher term is not written back into ratings.
+4. Caches results in `DATA/pitchers/game_starters.csv` and `DATA/pitchers/pitcher_game_logs.csv` (committed so GitHub Actions does not re-download ~1200 career logs every day). Rolling Game Score is rebuilt in memory from those logs (`DATA/pitchers/pitcher_rolling.csv` is gitignored). A full rebuild is `python pitcher_model.py`.
+
+The GitHub Pages table (`docs/index.md`) and the prediction CSV include **Away Pitcher** / **Home Pitcher**. A blank name means MLB has not listed a probable starter yet (or the starter was scratched and not replaced in the feed); that side uses Game Score 50.
+
+If the MLB API is down, the job keeps the last cache and still publishes team-Elo predictions (missing starters treated as average).
+
+Caveats that will stay true going forward:
+- **Probable ≠ actual.** The API field is the listed starter. Late scratches after the 9 AM ET job are not patched until the next run.
+- **Unmapped MLB abbreviations are skipped** in the starter fetch (see `MLB_ABBR_TO_REPO` / `MLB_NAME_TO_REPO` in `pitcher_model.py`). Those games still get a team-Elo prediction.
+- **Log refresh is incremental.** Pitchers who have not appeared on a recent or remaining-season probable list keep their last cached logs. A full rebuild (`python pitcher_model.py`) is the escape hatch after a long outage.
 
 ## Quickstart
 Prereqs: Python 3.9+ recommended
@@ -40,6 +59,7 @@ python predictions.py
 ```
 
 Outputs:
-- CSV table: `OUTPUTS/Game Predictions Based on Ratings through YYYY-MM-DD.csv`
+- CSV table: `OUTPUTS/Game Predictions Based on Ratings through YYYY-MM-DD.csv` (includes listed starters)
 - Markdown for GitHub Pages: `docs/index.md`
 - Most recent scraped dataset: `DATA/game_log_YYYY-MM-DD.csv`
+- Pitcher cache: `DATA/pitchers/`

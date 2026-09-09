@@ -152,11 +152,13 @@ def fetch_season_starters(season: int, session: requests.Session | None = None) 
     return pd.DataFrame(rows)
 
 
-def fetch_all_starters(start_season: int = 2017, end_season: int = 2026,
+def fetch_all_starters(start_season: int = 2017, end_season: int = None,
                        force: bool = False) -> pd.DataFrame:
     os.makedirs(CACHE_DIR, exist_ok=True)
     if os.path.exists(STARTERS_PATH) and not force:
         return pd.read_csv(STARTERS_PATH)
+    if end_season is None:
+        end_season = datetime.today().year
     s = _session()
     frames = []
     for season in range(start_season, end_season + 1):
@@ -190,7 +192,9 @@ def bill_james_game_score(stat: dict) -> float:
 
 
 def fetch_pitcher_logs(pitcher_id: int, session: requests.Session,
-                       start: str = '2016-01-01', end: str = '2026-12-31') -> pd.DataFrame:
+                       start: str = '2016-01-01', end: str = None) -> pd.DataFrame:
+    if end is None:
+        end = f'{datetime.today().year}-12-31'
     url = (
         f'https://statsapi.mlb.com/api/v1/people/{int(pitcher_id)}/stats'
         f'?stats=gameLog&group=pitching&startDate={start}&endDate={end}'
@@ -300,7 +304,14 @@ def _replace_pitcher_logs(logs: pd.DataFrame, updates: pd.DataFrame) -> pd.DataF
 
 
 def refresh_pitcher_cache(lookback_days: int = 16) -> tuple:
-    """Refresh current-season probables and recent starter game logs (daily pipeline)."""
+    """Refresh current-season probables and recent starter game logs (daily pipeline).
+
+    Replaces the current calendar year in game_starters.csv, then re-fetches
+    career-window logs for every pitcher listed on a game dated
+    (today - lookback_days) or later. Future remaining-season dates are
+    therefore included; pitchers who are not on that list keep their last
+    committed logs. Rolling GS is rebuilt in memory (not required on disk).
+    """
     os.makedirs(CACHE_DIR, exist_ok=True)
     today = datetime.today()
     year = today.year

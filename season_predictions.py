@@ -318,6 +318,9 @@ def get_playoff_probs(this_sim, game_data):
 	non_playoffs = game_data[game_data['Date'].map(_is_regular_season_date)]
 	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')].copy()
 	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
+	# Pregame win probs are static across season sims (Elo is not updated in
+	# finish_season). When probable starters are cached, bake the Game Score
+	# adjustment in once; otherwise each remaining game uses team Elo only.
 	if remaining_games.shape[0] > 0:
 		try:
 			import pitcher_model
