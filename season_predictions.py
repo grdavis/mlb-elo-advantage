@@ -40,8 +40,9 @@ def _regular_season_cutoff_for_year(year):
 def _is_regular_season_date(date_str):
 	return date_str < _regular_season_cutoff_for_year(int(date_str[:4]))
 
-def sim_winner(this_sim, home, away, is_playoffs):
-	home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
+def sim_winner(this_sim, home, away, is_playoffs, home_winp=None):
+	if home_winp is None:
+		home_winp = this_sim.predict_home_winp(home, away, is_playoffs)
 	return home if random() < home_winp else away
 
 def finish_season(this_sim, remaining_games):
@@ -49,7 +50,8 @@ def finish_season(this_sim, remaining_games):
 	Go through every game in remaining_games, predict the outcome and update the wins and losses in the simulation object
 	'''
 	for index, row in remaining_games.iterrows():
-		winner = sim_winner(this_sim, row['Home'], row['Away'], False)
+		home_winp = row['HOME_WINP'] if 'HOME_WINP' in remaining_games.columns and pd.notna(row.get('HOME_WINP')) else None
+		winner = sim_winner(this_sim, row['Home'], row['Away'], False, home_winp=home_winp)
 		loser = row['Home'] if winner == row['Away'] else row['Away']
 		this_sim.teams[winner].season_wins += 1
 		this_sim.teams[loser].season_losses += 1
@@ -314,8 +316,27 @@ def get_playoff_probs(this_sim, game_data):
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
 	non_playoffs = game_data[game_data['Date'].map(_is_regular_season_date)]
-	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')]
+	remaining_games = non_playoffs[non_playoffs['Home_Score'].isnull() | (non_playoffs['Home_Score'] == '')].copy()
 	print(f'Simulating season with {remaining_games.shape[0]} regular season games remaining...')
+	# Pregame win probs are static across season sims (Elo is not updated in
+	# finish_season). When probable starters are cached, bake the Game Score
+	# adjustment in once; otherwise each remaining game uses team Elo only.
+	if remaining_games.shape[0] > 0:
+		try:
+			import pitcher_model
+			rg = remaining_games.copy()
+			rg['matchup_on_date'] = rg.groupby(['Date', 'Home', 'Away']).cumcount() + 1
+			adj_map = pitcher_model.pitcher_adj_lookup(rg)
+			winps = []
+			for _, row in rg.iterrows():
+				adj = adj_map.get((str(row['Date'])[:10], row['Home'], row['Away'], int(row['matchup_on_date'])), 0.0)
+				winps.append(this_sim.predict_home_winp(row['Home'], row['Away'], False, pitcher_adj=adj))
+			remaining_games['HOME_WINP'] = winps
+		except Exception as e:
+			print(f'Pitcher-adjusted rest-of-season probs unavailable ({e}); using team Elo only')
+			remaining_games['HOME_WINP'] = [
+				this_sim.predict_home_winp(r['Home'], r['Away'], False) for _, r in remaining_games.iterrows()
+			]
 
 	#dictionaries mapping team name to counts of occurrences in simulations
 	playoffs = {}

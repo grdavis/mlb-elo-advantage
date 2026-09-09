@@ -6,6 +6,10 @@ import random
 '''
 MLB ELO methodology taken from https://www.baseballprospectus.com/news/article/5247/lies-damned-lies-we-are-elo/
 and https://fivethirtyeight.com/features/how-our-2016-mlb-predictions-work/
+
+Team ratings are updated from game results only. Starting-pitcher Game Score
+adjustments are applied at prediction time (see pitcher_model.py), matching 538's
+split between Elo ratings and pitcher-adjusted win probabilities.
 '''
 
 K_FACTOR = 4.25 #updated from 4 on 8/9/25
@@ -57,9 +61,10 @@ class ELO_Sim():
 		self.teams[winner].season_wins += 1
 		self.teams[loser].season_losses += 1
 
-	def predict_home_winp(self, home_team, away_team, is_playoffs):
+	def predict_home_winp(self, home_team, away_team, is_playoffs, pitcher_adj=0):
 		margin_mult = 1 if not is_playoffs else PLAYOFF_MARGIN_MULT
-		elo_margin = (self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team)) * margin_mult
+		# pitcher_adj is net Elo added to the home side (home starter minus away starter)
+		elo_margin = (self.get_elo(home_team) + HOME_ADVANTAGE - self.get_elo(away_team) + pitcher_adj) * margin_mult
 		return 1 / (1 + 10**(-elo_margin/400))
 
 	def season_reset(self):
@@ -235,6 +240,30 @@ def main(scrape = True, save_scrape = True, save_new_scrape = True, print_rating
 			odds_df = pd.DataFrame(columns=['Date', 'Home', 'Away', 'Home_Score', 'Away_Score', 'OU_Line', 'Home_ML', 'Away_ML'])
 		merged_df, n_matched = utils.merge_odds_and_sched(new_df, odds_df)
 		print(f"Matched {n_matched} games from golden schedule with live odds")
+
+		# Keep the first moneyline snapshot we already stored. Re-scraping completed
+		# games from ScoresAndOdds uses live-moneyline cells that can differ from the
+		# pre-game line we actually would have bet; overwriting made historical ROI
+		# evaluate a different price than the published pick.
+		prior = df.loc[df['Date'] >= on_or_after, ['Date', 'Home', 'Away', 'OU_Line', 'Home_ML', 'Away_ML']].copy()
+		if not prior.empty:
+			prior = prior.dropna(subset=['Home_ML', 'Away_ML'], how='all')
+			if not prior.empty:
+				prior['matchup_on_date'] = prior.groupby(['Date', 'Home', 'Away']).cumcount() + 1
+				merged_df = merged_df.copy()
+				merged_df['matchup_on_date'] = merged_df.groupby(['Date', 'Home', 'Away']).cumcount() + 1
+				merged_df = merged_df.merge(
+					prior.rename(columns={
+						'OU_Line': 'OU_Line_snap', 'Home_ML': 'Home_ML_snap', 'Away_ML': 'Away_ML_snap'
+					}),
+					on=['Date', 'Home', 'Away', 'matchup_on_date'],
+					how='left',
+				)
+				for col in ['OU_Line', 'Home_ML', 'Away_ML']:
+					snap = merged_df[f'{col}_snap']
+					merged_df[col] = snap.where(snap.notna(), merged_df[col])
+					merged_df.drop(columns=[f'{col}_snap'], inplace=True)
+				merged_df.drop(columns=['matchup_on_date'], inplace=True)
 
 		# Drop rows from old df at or after the refresh start, then append merged (golden + odds)
 		df = df.loc[df['Date'] < on_or_after]
