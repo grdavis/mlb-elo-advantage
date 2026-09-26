@@ -1,60 +1,56 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2026-09-25 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2026-09-26 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 7% of games and have a 15.33% ROI over the last 7 days. ROI is -39.43% over the last 30 days and 1.41% over the last 365.
+Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 8% of games and have a 34.14% ROI over the last 7 days. ROI is -35.96% over the last 30 days and 2.52% over the last 365.
 
-| Date       | Away   | Home   | Away Pitcher     | Home Pitcher       |   Away WinP |   Home WinP | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
-|:-----------|:-------|:-------|:-----------------|:-------------------|------------:|------------:|:----------|:-----------------|:----------|:-----------------|
-| 2026-09-25 | BAL    | NYY    | Trevor Rogers    | Brendan Beck       |       42.05 |       57.95 | -101      | n/a              | -119      | -113             |
-| 2026-09-25 | CHC    | BOS    | Clay Holmes      | Alec Gamboa        |       47.23 |       52.77 | NA        | +137             | NA        | +109             |
-| 2026-09-25 | BAL    | NYY    | Brandon Young    |                    |       38.46 |       61.54 | 102       | n/a              | -123      | -130             |
-| 2026-09-25 | CHC    | BOS    | David Peterson   | Brayan Bello       |       50.41 |       49.59 | -115      | +120             | -105      | +124             |
-| 2026-09-25 | TBD    | PHI    | Freddy Peralta   | Cristopher Sánchez |       49.64 |       50.36 | 147       | +124             | -179      | +120             |
-| 2026-09-25 | PIT    | DET    | Bubba Chandler   | Jackson Jobe       |       46.74 |       53.26 | -110      | +140             | -109      | +107             |
-| 2026-09-25 | NYM    | WSN    |                  | Andrew Alvarez     |       48.66 |       51.34 | -112      | +129             | -108      | +116             |
-| 2026-09-25 | CIN    | TOR    | Nick Lodolo      |                    |       39.74 |       60.26 | 118       | n/a              | -143      | -123             |
-| 2026-09-25 | ATL    | FLA    |                  | Eury Pérez         |       55.17 |       44.83 | -118      | -101             | -102      | +151             |
-| 2026-09-25 | STL    | MIL    | Michael McGreevy | Robert Gasser      |       33.17 |       66.83 | 157       | n/a              | -192      | -162             |
-| 2026-09-25 | CLE    | KCR    | Gavin Williams   | Noah Cameron       |       54.55 |       45.45 | -145      | +102             | 120       | +147             |
-| 2026-09-25 | COL    | CHW    | Tomoyuki Sugano  | Sean Burke         |       32.58 |       67.42 | 198       | n/a              | -245      | -166             |
-| 2026-09-25 | TEX    | MIN    | Jacob deGrom     | Joe Ryan           |       52.52 |       47.48 | -114      | +110             | -105      | +135             |
-| 2026-09-25 | ARI    | SDP    | Brandon Pfaadt   |                    |       42.6  |       57.4  | 111       | n/a              | -133      | -110             |
-| 2026-09-25 | HOU    | OAK    | Hunter Brown     | Jacob Lopez        |       61.03 |       38.97 | -185      | -127             | 152       | n/a              |
-| 2026-09-25 | ANA    | SEA    | Reid Detmers     | Bryce Miller       |       45.12 |       54.88 | 102       | +149             | -123      | +100             |
-| 2026-09-25 | LAD    | SFG    | Tarik Skubal     | Yunior Marte       |       62.46 |       37.54 | -336      | -135             | 264       | n/a              |
+| Date       | Away   | Home   | Away Pitcher    | Home Pitcher     |   Away WinP |   Home WinP | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
+|:-----------|:-------|:-------|:----------------|:-----------------|------------:|------------:|:----------|:-----------------|:----------|:-----------------|
+| 2026-09-26 | NYM    | WSN    | Jonah Tong      | Connelly Early   |       48.83 |       51.17 | NA        | +128             | NA        | +117             |
+| 2026-09-26 | PIT    | DET    | Kirby Yates     | Justin Verlander |       48.55 |       51.45 | NA        | +130             | NA        | +115             |
+| 2026-09-26 | CIN    | TOR    | Rhett Lowder    | Trey Yesavage    |       38.63 |       61.37 | 138       | n/a              | -167      | -129             |
+| 2026-09-26 | LAD    | SFG    | Blake Snell     | Matt Wilkinson   |       63.37 |       36.63 | -292      | -140             | 233       | n/a              |
+| 2026-09-26 | ATL    | FLA    | Brent Suter     | Jack Ralston     |       50.78 |       49.22 | -117      | +118             | -103      | +126             |
+| 2026-09-26 | TEX    | MIN    | Nathan Eovaldi  | Bailey Ober      |       48.7  |       51.3  | -125      | +129             | 104       | +116             |
+| 2026-09-26 | COL    | CHW    | Jose Quintana   | Davis Martin     |       31.83 |       68.17 | 203       | n/a              | -251      | -172             |
+| 2026-09-26 | CLE    | KCR    | Tanner Bibee    | Michael Wacha    |       51.84 |       48.16 | -114      | +114             | -105      | +132             |
+| 2026-09-26 | STL    | MIL    | Quinn Mathews   | Dustin May       |       34.72 |       65.28 | 135       | n/a              | -163      | -152             |
+| 2026-09-26 | TBD    | PHI    | Griffin Jax     |                  |       49.14 |       50.86 | -108      | +127             | -112      | +118             |
+| 2026-09-26 | ARI    | SDP    |                 | Walker Buehler   |       45.53 |       54.47 | 104       | +147             | -126      | +102             |
+| 2026-09-26 | HOU    | OAK    | Hayden Wesneski | Jack Perkins     |       56.68 |       43.32 | -161      | -107             | 133       | +161             |
+| 2026-09-26 | ANA    | SEA    | Ryan Johnson    | Kade Anderson    |       43.39 |       56.61 | 134       | +161             | -162      | -107             |
 
 # Team Elo Ratings
 This table summarizes each team's Elo rating (updated from game results only; pitcher adjustments are pre-game) and their chances of making it to various stages of the postseason based on 50000 simulations of the rest of the regular season and playoffs. Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when the outcome did not occur in any simulation.
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | MIL    |         1575 |              5 |              13 | 100.000%   | 100.000%       | 100.000%         | 65.808%    | 40.190%    | 27.942%  |
-|  2 | LAD    |         1562 |              1 |              10 | 100.000%   | 100.000%       | 100.000%         | 63.330%    | 30.730%    | 20.022%  |
-|  3 | NYY    |         1549 |             -2 |               9 | 100.000%   | <0.006%        | 100.000%         | 33.098%    | 23.098%    | 10.408%  |
-|  4 | CHC    |         1546 |              0 |              -2 | 99.614%    | <0.006%        | 99.614%          | 18.138%    | 8.574%     | 4.918%   |
-|  5 | SDP    |         1539 |              5 |              11 | 100.000%   | <0.006%        | 100.000%         | 18.122%    | 8.150%     | 4.476%   |
-|  6 | TBD    |         1535 |              1 |              15 | 100.000%   | 100.000%       | 100.000%         | 47.646%    | 30.568%    | 12.002%  |
-|  7 | BOS    |         1534 |             -6 |             -19 | 100.000%   | <0.006%        | 100.000%         | 19.436%    | 12.280%    | 4.698%   |
-|  8 | ATL    |         1530 |             -1 |              -1 | 100.000%   | 100.000%       | 100.000%         | 19.806%    | 7.100%     | 3.708%   |
-|  9 | PHI    |         1529 |             -4 |              -2 | 96.024%    | <0.006%        | 96.024%          | 14.288%    | 5.094%     | 2.530%   |
-| 10 | ARI    |         1512 |             10 |               0 | 4.362%     | <0.006%        | 4.362%           | 0.508%     | 0.162%     | 0.070%   |
-| 11 | PIT    |         1509 |              2 |              10 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 12 | CLE    |         1507 |              5 |               4 | 100.000%   | 66.832%        | 100.000%         | 44.984%    | 15.870%    | 4.456%   |
-| 13 | CHW    |         1506 |             10 |              -1 | 99.972%    | 33.168%        | 99.972%          | 33.856%    | 12.126%    | 3.418%   |
-| 14 | DET    |         1506 |             -7 |              -6 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 15 | TOR    |         1501 |             -5 |              -3 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 16 | NYM    |         1501 |              5 |               7 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 17 | BAL    |         1499 |              2 |              -1 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 18 | FLA    |         1496 |              2 |              -6 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 19 | HOU    |         1490 |              0 |               2 | 56.458%    | 56.446%        | 56.458%          | 12.168%    | 3.592%     | 0.776%   |
-| 20 | TEX    |         1488 |             -4 |               7 | 43.570%    | 43.554%        | 43.570%          | 8.812%     | 2.466%     | 0.576%   |
-| 21 | STL    |         1484 |              0 |              -6 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 22 | WSN    |         1481 |              2 |               9 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 23 | SEA    |         1475 |             -6 |             -11 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 24 | MIN    |         1469 |              4 |              -1 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 25 | SFG    |         1467 |             -5 |               0 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 26 | KCR    |         1466 |             -7 |              -9 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 27 | CIN    |         1465 |              0 |              -3 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 28 | ANA    |         1445 |             -6 |              -5 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 29 | OAK    |         1424 |              0 |              -4 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
-| 30 | COL    |         1409 |             -4 |             -19 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+|  1 | MIL    |         1577 |              6 |              12 | 100.000%   | 100.000%       | 100.000%         | 67.810%    | 41.732%    | 29.350%  |
+|  2 | LAD    |         1563 |              0 |              12 | 100.000%   | 100.000%       | 100.000%         | 65.234%    | 31.746%    | 20.792%  |
+|  3 | NYY    |         1546 |             -3 |               9 | 100.000%   | <0.006%        | 100.000%         | 30.714%    | 20.938%    | 9.014%   |
+|  4 | CHC    |         1542 |             -6 |              -6 | 96.864%    | <0.006%        | 96.864%          | 16.686%    | 7.460%     | 4.146%   |
+|  5 | TBD    |         1537 |              1 |              17 | 100.000%   | 100.000%       | 100.000%         | 48.816%    | 31.462%    | 12.518%  |
+|  6 | BOS    |         1537 |             -2 |             -16 | 100.000%   | <0.006%        | 100.000%         | 20.470%    | 13.194%    | 5.100%   |
+|  7 | SDP    |         1535 |              0 |               7 | 100.000%   | <0.006%        | 100.000%         | 17.160%    | 7.520%     | 4.022%   |
+|  8 | ATL    |         1528 |             -5 |              -4 | 100.000%   | 100.000%       | 100.000%         | 18.598%    | 6.522%     | 3.384%   |
+|  9 | PHI    |         1527 |             -2 |              -4 | 85.204%    | <0.006%        | 85.204%          | 12.396%    | 4.404%     | 2.156%   |
+| 10 | ARI    |         1517 |             13 |               9 | 17.932%    | <0.006%        | 17.932%          | 2.116%     | 0.616%     | 0.296%   |
+| 11 | CLE    |         1509 |              5 |               6 | 100.000%   | 74.220%        | 100.000%         | 48.228%    | 17.546%    | 4.780%   |
+| 12 | CHW    |         1508 |             10 |               1 | 100.000%   | 25.780%        | 100.000%         | 32.188%    | 11.386%    | 3.212%   |
+| 13 | PIT    |         1508 |              0 |               9 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 14 | DET    |         1507 |             -4 |              -5 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 15 | TOR    |         1502 |             -1 |               4 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 16 | BAL    |         1502 |              6 |               4 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 17 | NYM    |         1500 |              0 |               9 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 18 | FLA    |         1498 |              5 |              -4 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 19 | HOU    |         1489 |              1 |              -3 | 55.526%    | 55.526%        | 55.526%          | 11.278%    | 3.264%     | 0.724%   |
+| 20 | TEX    |         1483 |            -11 |               2 | 44.474%    | 44.474%        | 44.474%          | 8.306%     | 2.210%     | 0.506%   |
+| 21 | WSN    |         1483 |              1 |               8 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 22 | STL    |         1482 |              1 |             -10 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 23 | MIN    |         1473 |             10 |               3 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 24 | SEA    |         1473 |             -6 |             -13 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 25 | SFG    |         1466 |             -4 |              -4 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 26 | KCR    |         1464 |             -8 |             -17 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 27 | CIN    |         1463 |              0 |              -5 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 28 | ANA    |         1448 |             -4 |              -2 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 29 | OAK    |         1426 |              4 |              -2 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
+| 30 | COL    |         1407 |             -8 |             -19 | <0.006%    | <0.006%        | <0.006%          | <0.006%    | <0.006%    | <0.006%  |
