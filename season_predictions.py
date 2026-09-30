@@ -1,6 +1,7 @@
 import pandas as pd
 from random import random
 from tqdm import tqdm
+import utils
 
 N_GAMES_TO_SIM = 5000000 # at about 19000 games per second, this targets about a 6 minute runtime no matter how many games remain
 # Floor so rare events (e.g. last-place club sneaking into WC) show non-zero rates after rounding
@@ -8,37 +9,38 @@ MIN_PLAYOFF_SIMS = 12000
 MAX_PLAYOFF_SIMS = 50000
 
 # ============================================================================
-# PLAYOFF BRACKET CONFIGURATION — update when each postseason field is set
+# POSTSEASON CALENDAR
+# The 12-team field, seeds, and series scores are derived from the game log.
+# Only the first postseason date is configured (regular-season rows are strictly
+# before it). Unknown years fall back to September 29, the recent norm.
 # ============================================================================
-# First day of the postseason by year (regular-season rows are strictly before this date).
 PLAYOFF_START_BY_YEAR = {
 	2025: '2025-09-29',
 	2026: '2026-09-29',
 }
 PLAYOFF_START_DATE = PLAYOFF_START_BY_YEAR[2026]
 
-# 2026 placeholders — replace with actual WC seeds and bracket when playoffs begin
-PLAYOFF_WILD_CARDS = {'AL': ['NYY', 'BOS', 'DET'], 'NL': ['CHC', 'SDP', 'CIN']}
-PLAYOFF_DIV_WINNERS = {'AL': ['TOR', 'SEA', 'CLE'], 'NL': ['MIL', 'PHI', 'LAD']}
-
-# Initial Wild Card bracket structure (determines who plays whom)
-# Pattern: Division winners play against wild cards in this order
-# Each pair of entries represents one matchup (better seed listed first)
-PLAYOFF_WC_BRACKET = [
-	# NL matchups (indices 0-7)
-	('MIL', 0), ('MIL', 0), ('CHC', 0), ('SDP', 0),  # MIL(1) gets bye, WC3 vs WC4
-	('PHI', 0), ('PHI', 0), ('LAD', 0), ('CIN', 0),  # PHI(2) gets bye, WC5 vs WC6
-	# AL matchups (indices 8-15)
-	('TOR', 0), ('TOR', 0), ('NYY', 0), ('BOS', 0),  # TOR(1) gets bye, WC3 vs WC4
-	('SEA', 0), ('SEA', 0), ('CLE', 0), ('DET', 0)   # SEA(2) gets bye, WC5 vs WC6
-]
-# ============================================================================
+# 2022-present round lengths. 'h' is a game at the higher seed.
+# Wild Card is best of 3, all at the higher seed.
+# LDS is best of 5 (2-2-1). LCS and World Series are best of 7 (2-3-2).
+WC_FORM = 'hhh'
+LDS_FORM = 'hhaah'
+LCS_FORM = 'hhaaahh'
+WS_FORM = 'hhaaahh'
 
 def _regular_season_cutoff_for_year(year):
 	return PLAYOFF_START_BY_YEAR.get(year, f'{year}-09-29')
 
 def _is_regular_season_date(date_str):
 	return date_str < _regular_season_cutoff_for_year(int(date_str[:4]))
+
+def _in_postseason(date_str):
+	if not date_str:
+		return False
+	return date_str >= _regular_season_cutoff_for_year(int(date_str[:4]))
+
+def _wins_needed(form):
+	return len(form) // 2 + 1
 
 def sim_winner(this_sim, home, away, is_playoffs, home_winp=None):
 	if home_winp is None:
@@ -58,260 +60,312 @@ def finish_season(this_sim, remaining_games):
 
 def sim_series(this_sim, home, home_wins, away, away_wins, form):
 	'''
-	Simulates a playoff series between 'home' and 'away' with games in 'form' order and returns a winner. Also specify
-	the current score of the series with home_wins and away_wins, so we can predict the outcome of a series in progress
-	form: a string specifying where games are played if the series goes the full length
-		e.g. 'hhaah' will be two games at 'home', two at 'away', then 1 back at 'home' (if the series goes all 5 games)
+	Simulates a playoff series between 'home' (higher seed) and 'away'. home_wins and away_wins are the
+	current series score so a series in progress is resumed. form is the home/away pattern if the series
+	goes the full length, e.g. 'hhaah' is two at home, two at away, then one at home.
+	A bye is home == away and returns that team without playing.
 	'''
-	wins_needed = len(form) // 2 + 1
-	if home_wins == wins_needed: return home
-	if away_wins == wins_needed: return away
+	if home == away:
+		return home
+	wins_needed = _wins_needed(form)
+	if home_wins >= wins_needed:
+		return home
+	if away_wins >= wins_needed:
+		return away
 	win_dict = {home: home_wins, away: away_wins}
 
-	start_index = home_wins + away_wins
-	for game in form[start_index:]:
+	for game in form[home_wins + away_wins:]:
 		if game == 'h':
 			win_dict[sim_winner(this_sim, home, away, is_playoffs = True)] += 1
 		else:
 			win_dict[sim_winner(this_sim, away, home, is_playoffs = True)] += 1
 
-		if win_dict[home] == wins_needed: return home
-		elif win_dict[away] == wins_needed: return away
+		if win_dict[home] >= wins_needed:
+			return home
+		if win_dict[away] >= wins_needed:
+			return away
+	if win_dict[home] >= win_dict[away]:
+		return home
+	return away
 
-def count_series_wins(playoff_games, team1, team2):
-	'''Count wins for team1 and team2 in their head-to-head series.'''
-	matchup_games = playoff_games[
-		((playoff_games['Home'] == team1) & (playoff_games['Away'] == team2)) |
-		((playoff_games['Home'] == team2) & (playoff_games['Away'] == team1))
-	]
-	
-	team1_wins, team2_wins = 0, 0
-	for _, game in matchup_games.iterrows():
-		winner = game['Home'] if float(game['Home_Score']) > float(game['Away_Score']) else game['Away']
-		if winner == team1:
-			team1_wins += 1
-		else:
-			team2_wins += 1
-	return team1_wins, team2_wins
+def _decisive_result(row):
+	'''Return (winner, loser, winner_margin) or None if the game has no decisive score.'''
+	hs, aws = row['Home_Score'], row['Away_Score']
+	if pd.isna(hs) or pd.isna(aws):
+		return None
+	if str(hs).strip() == '' or str(aws).strip() == '':
+		return None
+	try:
+		hs, aws = float(hs), float(aws)
+	except (TypeError, ValueError):
+		return None
+	if hs == aws:
+		return None
+	home, away = row['Home'], row['Away']
+	if hs > aws:
+		return home, away, hs - aws
+	return away, home, aws - hs
 
-def update_playoff_series_from_games(game_data, wc_round, playoff_start_date=PLAYOFF_START_DATE):
-	'''Parse game log, update all series scores, auto-detect advancing matchups.'''
-	playoff_games = game_data[
-		(game_data['Date'] >= playoff_start_date) & 
-		(game_data['Home_Score'].notna()) &
-		(game_data['Home_Score'] != '')
-	].copy()
-	
-	if len(playoff_games) == 0:
-		return wc_round, [], [], []
-	
-	print(f'[PLAYOFF PARSER] Found {len(playoff_games)} completed playoff games')
-	
-	wc_pairs = {tuple(sorted([wc_round[i][0], wc_round[i+1][0]])) 
-	            for i in range(0, len(wc_round), 2)}
-	
-	# Build dict of matchups with their first game date for chronological sorting
-	all_matchups = {}
-	for _, game in playoff_games.iterrows():
-		pair = tuple(sorted([game['Home'], game['Away']]))
-		if pair not in all_matchups:
-			all_matchups[pair] = {'teams': (game['Home'], game['Away']), 'first_game': game['Date']}
-	
-	def build_round(matchup_pairs, wins_needed):
-		round_list = []
-		for team1, team2 in matchup_pairs:
-			wins1, wins2 = count_series_wins(playoff_games, team1, team2)
-			round_list.extend([(team1, wins1), (team2, wins2)])
-			if wins1 > 0 or wins2 > 0:
-				status = 'complete' if max(wins1, wins2) >= wins_needed else 'in progress'
-				print(f'[PLAYOFF PARSER] {team1} {wins1}-{wins2} {team2} ({status})')
-		return round_list
-	
-	# Separate matchups by round using chronological order
-	# Sort all non-WC matchups by first game date
-	non_wc_matchups = [(p, info) for p, info in all_matchups.items() if p not in wc_pairs]
-	non_wc_matchups.sort(key=lambda x: x[1]['first_game'])
-	
-	# Wild Card round
-	updated_wc_round = build_round([all_matchups[p]['teams'] for p in wc_pairs if p in all_matchups], 2)
-	
-	# Division Series: next 4 matchups chronologically (2 per league)
-	div_matchups = non_wc_matchups[:4] if len(non_wc_matchups) >= 4 else non_wc_matchups
-	updated_div_round = build_round([info['teams'] for p, info in div_matchups], 3)
-	
-	# Championship Series: next 2 matchups chronologically (1 per league)
-	cs_matchups = non_wc_matchups[4:6] if len(non_wc_matchups) >= 6 else []
-	updated_league_round = build_round([info['teams'] for p, info in cs_matchups], 4)
-	
-	# World Series: next 1 matchup chronologically
-	ws_matchups = non_wc_matchups[6:7] if len(non_wc_matchups) >= 7 else []
-	updated_ws_round = build_round([info['teams'] for p, info in ws_matchups], 4)
-	
-	return updated_wc_round, updated_div_round, updated_league_round, updated_ws_round
+def rank_group(members, wins, h2h, run_diff):
+	'''
+	Order teams by wins, then head-to-head wins within the tied group, then run differential, then name.
+	Used only to lock the real postseason field. In-season Monte Carlo still breaks ties at random.
+	'''
+	buckets = {}
+	for team in members:
+		buckets.setdefault(wins.get(team, 0), []).append(team)
+	ranked = []
+	for win_total in sorted(buckets, reverse = True):
+		group = buckets[win_total]
+		def sort_key(team, group = group):
+			h2h_wins = sum(h2h.get((team, other), 0) for other in group if other != team)
+			return (-h2h_wins, -run_diff.get(team, 0), team)
+		ranked.extend(sorted(group, key = sort_key))
+	return ranked
 
-def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
-	'''Determine playoff bracket from standings or use precomputed bracket. Simulates series to find WS winner.'''
+def playoff_seeds_from_records(teams, wins, h2h, run_diff):
+	'''
+	12-team bracket. teams is an iterable of (name, league, division).
+	Division winners are re-seeded by record (1-2 bye, 3 plays WC3).
+	The three wild cards are seeded 4-6. 4 plays 5, 3 plays 6.
+	Returns divw/wcs dicts keyed by league, best record first.
+	'''
+	by_division = {}
+	meta = {}
+	for name, league, division in teams:
+		by_division.setdefault(division, []).append(name)
+		meta[name] = (league, division)
+	division_winner = {}
+	for division, members in by_division.items():
+		division_winner[division] = rank_group(members, wins, h2h, run_diff)[0]
 
-	#create list of teams and their win counts, add a random number between 0 and 1 to break ties, sort descending
-	standings = sorted([(team, this_sim.teams[team].season_wins + random(), this_sim.teams[team].league, this_sim.teams[team].division) for team in this_sim.teams], key = lambda x: x[1], reverse = True)
-	
+	divw = {'AL': [], 'NL': []}
+	wcs = {'AL': [], 'NL': []}
+	for league in ('AL', 'NL'):
+		winners = [name for name, (lg, division) in meta.items()
+			if lg == league and division_winner.get(division) == name]
+		# one winner per division; dict order can repeat a winner if meta is odd, so unique it
+		seen = []
+		for name in winners:
+			if name not in seen:
+				seen.append(name)
+		divw[league] = rank_group(seen, wins, h2h, run_diff)
+		rest = [name for name, (lg, division) in meta.items() if lg == league and name not in seen]
+		wcs[league] = rank_group(rest, wins, h2h, run_diff)[:3]
+	return divw, wcs
+
+def seed_map(divw, wcs):
+	seeds = {}
+	for league in ('AL', 'NL'):
+		for i, team in enumerate(divw[league]):
+			seeds[team] = i + 1
+		for i, team in enumerate(wcs[league]):
+			seeds[team] = i + 4
+	return seeds
+
+def series_win_index(playoff_games):
+	'''Map frozenset({team_a, team_b}) to {team: series wins} for completed postseason games.'''
+	index = {}
+	if playoff_games is None or len(playoff_games) == 0:
+		return index
+	for _, row in playoff_games.iterrows():
+		parsed = _decisive_result(row)
+		if parsed is None:
+			continue
+		winner, loser, _margin = parsed
+		rec = index.setdefault(frozenset((winner, loser)), {})
+		rec[winner] = rec.get(winner, 0) + 1
+		rec.setdefault(loser, 0)
+	return index
+
+def _indexed_wins(win_index, team_a, team_b):
+	rec = win_index.get(frozenset((team_a, team_b)))
+	if not rec:
+		return 0, 0
+	return rec.get(team_a, 0), rec.get(team_b, 0)
+
+def _regular_season_records(game_data, year, playoff_start):
+	'''Wins, head-to-head wins, and run differential from this year's regular season only.'''
+	wins = {team: 0 for team in utils.TEAM_DIVISIONS}
+	run_diff = {team: 0 for team in utils.TEAM_DIVISIONS}
+	h2h = {}
+	if game_data is None or len(game_data) == 0:
+		return wins, h2h, run_diff
+	year_prefix = f'{year}-'
+	for _, row in game_data.iterrows():
+		date = str(row['Date'])
+		if not date.startswith(year_prefix) or date >= playoff_start:
+			continue
+		parsed = _decisive_result(row)
+		if parsed is None:
+			continue
+		winner, loser, margin = parsed
+		if winner not in wins or loser not in wins:
+			continue
+		wins[winner] += 1
+		run_diff[winner] += margin
+		run_diff[loser] -= margin
+		h2h[(winner, loser)] = h2h.get((winner, loser), 0) + 1
+	return wins, h2h, run_diff
+
+def _postseason_games(game_data, year, playoff_start):
+	if game_data is None or len(game_data) == 0:
+		return game_data
+	year_prefix = f'{year}-'
+	dates = game_data['Date'].astype(str)
+	mask = dates.str.startswith(year_prefix) & (dates >= playoff_start)
+	return game_data.loc[mask]
+
+def lock_postseason_bracket(game_data, as_of_date):
+	'''
+	Freeze the playoff field from regular-season results. Playoff wins are not added
+	back into the standings, so a Wild Card win cannot change seeds or division titles.
+	'''
+	year = int(str(as_of_date)[:4])
+	playoff_start = _regular_season_cutoff_for_year(year)
+	wins, h2h, run_diff = _regular_season_records(game_data, year, playoff_start)
+	teams = [(name, division[:2], division) for name, division in utils.TEAM_DIVISIONS.items()]
+	divw, wcs = playoff_seeds_from_records(teams, wins, h2h, run_diff)
+	ranked = rank_group(list(utils.TEAM_DIVISIONS), wins, h2h, run_diff)
+	return {
+		'divw': divw,
+		'wcs': wcs,
+		'seed_of': seed_map(divw, wcs),
+		'rank_of': {team: i + 1 for i, team in enumerate(ranked)},
+		'win_index': series_win_index(_postseason_games(game_data, year, playoff_start)),
+		'wins': wins,
+		'playoff_start': playoff_start,
+	}
+
+def _seeds_from_sim(this_sim):
+	'''Seed a simulated regular-season table. A random fraction breaks exact win ties.'''
+	standings = sorted(
+		[(team, this_sim.teams[team].season_wins + random(), this_sim.teams[team].league, this_sim.teams[team].division)
+			for team in this_sim.teams],
+		key = lambda x: x[1], reverse = True)
 	div_winners = {}
 	wcs = {'AL': [], 'NL': []}
 	divw = {'AL': [], 'NL': []}
-	rankings = {}
+	rank_of = {}
 	rank = 1
-	for team in standings:
-		rankings[team[0]] = rank
-		if team[3] not in div_winners:
-			div_winners[team[3]] = team[0]
-			divw[team[2]] += [team[0]]
-		elif len(wcs[team[2]]) < 3:
-			wcs[team[2]] += [team[0]]
+	for team, _wins, league, division in standings:
+		rank_of[team] = rank
 		rank += 1
+		if division not in div_winners:
+			div_winners[division] = team
+			divw[league].append(team)
+		elif len(wcs[league]) < 3:
+			wcs[league].append(team)
+	return divw, wcs, seed_map(divw, wcs), rank_of
 
-	#list of 16 teams where pairs of two play each other first round:
-	#	NL1, NL1, NL4, NL5, NL2, NL2, NL3, NL6, AL1, AL1, AL4, AL5, AL2, AL2, AL3, AL6
-	wc_round = [(divw['NL'][0], 0), 
-					(divw['NL'][0], 0),
-					(wcs['NL'][0], 0),
-					(wcs['NL'][1], 0),
-					(divw['NL'][1], 0),
-					(divw['NL'][1], 0),
-					(divw['NL'][2], 0),
-					(wcs['NL'][2], 0),
-					(divw['AL'][0], 0),
-					(divw['AL'][0], 0),
-					(wcs['AL'][0], 0),
-					(wcs['AL'][1], 0),
-					(divw['AL'][1], 0),
-					(divw['AL'][1], 0),
-					(divw['AL'][2], 0),
-					(wcs['AL'][2], 0)]
-	div_round = []
-	league_round = []
-	ws_round = []
+def _play(this_sim, high, low, form, win_index):
+	if high == low:
+		return high
+	high_wins, low_wins = _indexed_wins(win_index, high, low)
+	return sim_series(this_sim, high, high_wins, low, low_wins, form)
 
-	# Setup for current playoffs
-	is_current_playoffs = this_sim.date >= PLAYOFF_START_DATE
-	if is_current_playoffs:
-		# Get initial bracket state (either from precomputed or from game log)
-		if precomputed_bracket is not None:
-			wcs = precomputed_bracket['wcs']
-			divw = precomputed_bracket['divw']
-			wc_round = precomputed_bracket['wc_round'][:]  # Copy to avoid mutation
-			div_round = precomputed_bracket['div_round'][:]
-			league_round = precomputed_bracket['league_round'][:]
-			ws_round = precomputed_bracket['ws_round'][:]
-		else:
-			wcs = PLAYOFF_WILD_CARDS.copy()
-			divw = PLAYOFF_DIV_WINNERS.copy()
-			wc_round = PLAYOFF_WC_BRACKET.copy()
-			if game_data is not None:
-				wc_round, div_round, league_round, ws_round = update_playoff_series_from_games(
-					game_data, wc_round, PLAYOFF_START_DATE
-				)
-			else:
-				div_round, league_round, ws_round = [], [], []
+def _home_away_by_seed(team_a, team_b, seed_of):
+	'''Better original seed (1 is best) hosts.'''
+	if seed_of.get(team_a, 99) <= seed_of.get(team_b, 99):
+		return team_a, team_b
+	return team_b, team_a
 
-	returns = [divw, wcs]
-	
-	# Simulate Division Round from current state (ALWAYS simulate, even with precomputed bracket)
-	div_round_participants = []
-	if div_round == []:
-		# Build from WC winners
-		while len(wc_round) >= 2:
-			team1, wins1 = wc_round.pop(0)
-			team2, wins2 = wc_round.pop(0)
-			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhh')
-			div_round.append((winner, 0))
-			# Only add unique teams (handles byes where team1 == team2)
-			if team1 == team2:
-				div_round_participants.append((team1, wins1))
-			else:
-				div_round_participants.extend([(team1, wins1), (team2, wins2)])
+def _home_away_by_rank(team_a, team_b, rank_of):
+	'''Better regular-season record hosts the World Series. Lower rank number is better.'''
+	if rank_of.get(team_a, 10**9) <= rank_of.get(team_b, 10**9):
+		return team_a, team_b
+	return team_b, team_a
+
+def simulate_postseason(this_sim, divw, wcs, seed_of, rank_of, win_index):
+	'''
+	Walk Wild Card -> LDS -> LCS -> World Series. Completed series in win_index are not replayed.
+	Each simulated season returns exactly:
+	- 6 division winners and 6 wild cards (12 playoff teams)
+	- 8 LDS teams (seeds 1-2 plus the four Wild Card winners)
+	- 4 LCS teams
+	- 2 World Series teams
+	- 1 champion
+	'''
+	lds_entrants = []
+	for league in ('NL', 'AL'):
+		seed1, seed2, seed3 = divw[league]
+		wc1, wc2, wc3 = wcs[league]
+		# 1-seed bye, 4 vs 5, 2-seed bye, 3 vs 6. Winners meet in that order in the LDS.
+		for high, low in ((seed1, seed1), (wc1, wc2), (seed2, seed2), (seed3, wc3)):
+			lds_entrants.append(_play(this_sim, high, low, WC_FORM, win_index))
+
+	lds_winners = []
+	for i in range(0, len(lds_entrants), 2):
+		lds_winners.append(_play(this_sim, lds_entrants[i], lds_entrants[i + 1], LDS_FORM, win_index))
+
+	nl_home, nl_away = _home_away_by_seed(lds_winners[0], lds_winners[1], seed_of)
+	al_home, al_away = _home_away_by_seed(lds_winners[2], lds_winners[3], seed_of)
+	nl_champ = _play(this_sim, nl_home, nl_away, LCS_FORM, win_index)
+	al_champ = _play(this_sim, al_home, al_away, LCS_FORM, win_index)
+
+	ws_home, ws_away = _home_away_by_rank(nl_champ, al_champ, rank_of)
+	ws_winner = _play(this_sim, ws_home, ws_away, WS_FORM, win_index)
+
+	return [
+		divw,
+		wcs,
+		[(team, 0) for team in lds_entrants],
+		[(team, 0) for team in (nl_home, nl_away, al_home, al_away)],
+		[(team, 0) for team in (ws_home, ws_away)],
+		ws_winner,
+	]
+
+def setup_playoffs(this_sim, game_data=None, precomputed_bracket=None):
+	'''
+	Simulate the postseason once. Before the postseason, seeds come from the simulated
+	standings. Once the regular season is over, the caller passes a bracket locked from
+	regular-season games so playoff results cannot reseed the field.
+	'''
+	if precomputed_bracket is None and game_data is not None and _in_postseason(this_sim.date):
+		precomputed_bracket = lock_postseason_bracket(game_data, this_sim.date)
+	if precomputed_bracket is not None:
+		return simulate_postseason(
+			this_sim,
+			precomputed_bracket['divw'],
+			precomputed_bracket['wcs'],
+			precomputed_bracket['seed_of'],
+			precomputed_bracket['rank_of'],
+			precomputed_bracket['win_index'],
+		)
+	divw, wcs, seed_of, rank_of = _seeds_from_sim(this_sim)
+	return simulate_postseason(this_sim, divw, wcs, seed_of, rank_of, {})
+
+def _series_line(label, high, low, form, win_index):
+	high_wins, low_wins = _indexed_wins(win_index, high, low)
+	needed = _wins_needed(form)
+	if high_wins >= needed or low_wins >= needed:
+		status = 'final'
+	elif high_wins + low_wins == 0:
+		status = 'not started'
 	else:
-		# Division round in progress - simulate each series from current state
-		div_round_participants = div_round[:]  # Track all participants for stats
-		winners = []
-		for i in range(0, len(div_round), 2):
-			if i+1 < len(div_round):
-				team1, wins1 = div_round[i]
-				team2, wins2 = div_round[i+1]
-				winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaah')
-				winners.append((winner, 0))
-		div_round = winners  # Use winners for next round simulation
-	returns.append(div_round_participants)
+		status = 'in progress'
+	return f'{label} {high} {high_wins}-{low_wins} {low} ({status}, first to {needed})'
 
-	# Division Series: div_round has 8 teams (4 NL, 4 AL); produces 4 LDS winners who enter LCS
-	league_round_participants = []
-	if league_round == []:
-		while len(div_round) >= 2:
-			team1, wins1 = div_round.pop(0)
-			team2, wins2 = div_round.pop(0)
-			winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
-			league_round.append((winner, 0))
-			league_round_participants.extend([(team1, wins1), (team2, wins2)])
-		# "Reach CS" = won LDS (four league-championship-series entrants)
-		league_round_participants = league_round[:]
-	elif len(league_round) >= 2:
-		# League round already started - track participants and simulate to completion
-		league_round_participants = league_round[:]
-		winners = []
-		for i in range(0, len(league_round), 2):
-			if i+1 < len(league_round):
-				team1, wins1 = league_round[i]
-				team2, wins2 = league_round[i+1]
-				winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
-				winners.append((winner, 0))
-		league_round = winners
-	returns.append(league_round_participants)
+def format_postseason_status(bracket):
+	'''One-time log of the locked field and Wild Card series state.'''
+	lines = [f"[PLAYOFF] Field locked from regular-season games before {bracket['playoff_start']}"]
+	wins = bracket['wins']
+	for league in ('NL', 'AL'):
+		bits = [f"{i + 1}:{team}({wins.get(team, 0)})" for i, team in enumerate(bracket['divw'][league])]
+		bits += [f"{i + 4}:{team}({wins.get(team, 0)})" for i, team in enumerate(bracket['wcs'][league])]
+		lines.append(f"[PLAYOFF] {league} " + ' '.join(bits))
+		seed1, seed2, seed3 = bracket['divw'][league]
+		wc1, wc2, wc3 = bracket['wcs'][league]
+		lines.append('[PLAYOFF] ' + _series_line(f'{league} WC', wc1, wc2, WC_FORM, bracket['win_index']))
+		lines.append('[PLAYOFF] ' + _series_line(f'{league} WC', seed3, wc3, WC_FORM, bracket['win_index']))
+		lines.append(f"[PLAYOFF] {league} bye to LDS: {seed1}, {seed2}")
+	return '\n'.join(lines)
 
-	# LCS then WS: league_round must be NL LDS winner, NL LDS winner, AL LDS winner, AL LDS winner
-	ws_round_participants = []
-	if ws_round == []:
-		if len(league_round) == 4:
-			nl1, nl2, al1, al2 = league_round[0], league_round[1], league_round[2], league_round[3]
-			nl_champ = sim_series(this_sim, nl1[0], nl1[1], nl2[0], nl2[1], 'hhaaahh')
-			al_champ = sim_series(this_sim, al1[0], al1[1], al2[0], al2[1], 'hhaaahh')
-			ws_round = [(nl_champ, 0), (al_champ, 0)]
-			ws_round_participants = [(nl_champ, 0), (al_champ, 0)]
-		elif len(league_round) == 2:
-			# Resumed bracket: both league champions already decided
-			ws_round = [league_round[0], league_round[1]]
-			ws_round_participants = ws_round[:]
-		elif len(league_round) >= 2:
-			# Unexpected shape; fall back to pairing in order
-			while len(league_round) >= 2:
-				team1, wins1 = league_round.pop(0)
-				team2, wins2 = league_round.pop(0)
-				ws_round.extend([(team1, wins1), (team2, wins2)])
-				ws_round_participants.extend([(team1, wins1), (team2, wins2)])
-	elif len(ws_round) >= 2:
-		# WS already started
-		ws_round_participants = ws_round[:]
-	returns.append(ws_round_participants)
-
-	# Simulate WS winner if we have both participants
-	if len(ws_round) >= 2:
-		# WS participants are in ws_round, simulate to get winner
-		team1, wins1 = ws_round[0]
-		team2, wins2 = ws_round[1]
-		# Better record gets home field
-		if rankings.get(team1, float('inf')) <= rankings.get(team2, float('inf')):
-			ws_winner = sim_series(this_sim, team1, wins1, team2, wins2, 'hhaaahh')
-		else:
-			ws_winner = sim_series(this_sim, team2, wins2, team1, wins1, 'hhaaahh')
-		returns.append(ws_winner)
-	else:
-		returns.append(None)  # No WS winner yet
-	
-	return returns
-
-def get_playoff_probs(this_sim, game_data):
+def get_playoff_probs(this_sim, game_data, n_sims = None):
 	'''
 	Takes in an Elo simulation and a DataFrame of scores. Orchestrates the running of several simulations on
 	the rest of the season and tabulates the probabilities of each team making the playoffs, the CS, DS, WS,
-	and winning the whole thing 
+	and winning the whole thing
 	'''
 	current_wins = {team: this_sim.teams[team].season_wins for team in this_sim.teams}
 	current_losses = {team: this_sim.teams[team].season_losses for team in this_sim.teams}
@@ -345,29 +399,20 @@ def get_playoff_probs(this_sim, game_data):
 	championship = {}
 	world_series = {}
 	ws_winner = {}
-	if remaining_games.shape[0] == 0:
-		n_sims = MAX_PLAYOFF_SIMS
-	else:
-		n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], MAX_PLAYOFF_SIMS)
-		n_sims = max(n_sims, MIN_PLAYOFF_SIMS)
+	if n_sims is None:
+		if remaining_games.shape[0] == 0:
+			n_sims = MAX_PLAYOFF_SIMS
+		else:
+			n_sims = min(N_GAMES_TO_SIM // remaining_games.shape[0], MAX_PLAYOFF_SIMS)
+			n_sims = max(n_sims, MIN_PLAYOFF_SIMS)
 
 	precomputed_bracket = None
-	if this_sim.date >= PLAYOFF_START_DATE:
-		wcs = PLAYOFF_WILD_CARDS.copy()
-		divw = PLAYOFF_DIV_WINNERS.copy()
-		print('\n[PERFORMANCE] Pre-computing playoff bracket from game log...')
-		wc_round, div_round, league_round, ws_round = update_playoff_series_from_games(
-			game_data, PLAYOFF_WC_BRACKET.copy(), PLAYOFF_START_DATE
-		)
-		
-		precomputed_bracket = {
-			'wcs': wcs,
-			'divw': divw,
-			'wc_round': wc_round,
-			'div_round': div_round,
-			'league_round': league_round,
-			'ws_round': ws_round
-		}
+	# Lock only when the regular season is complete. An unplayed pre-cutoff game
+	# still has to be simulated, and that can change the field.
+	if _in_postseason(this_sim.date) and remaining_games.shape[0] == 0:
+		print('\n[PERFORMANCE] Locking playoff bracket from regular-season standings...')
+		precomputed_bracket = lock_postseason_bracket(game_data, this_sim.date)
+		print(format_postseason_status(precomputed_bracket))
 
 	for _ in tqdm(range(n_sims)):
 		#reset the win and loss counts to what they are currently at the start of every simulation
