@@ -18,7 +18,6 @@ PLAYOFF_START_BY_YEAR = {
 	2025: '2025-09-29',
 	2026: '2026-09-29',
 }
-PLAYOFF_START_DATE = PLAYOFF_START_BY_YEAR[2026]
 
 # 2022-present round lengths. 'h' is a game at the higher seed.
 # Wild Card is best of 3, all at the higher seed.
