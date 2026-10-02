@@ -252,6 +252,97 @@ def test_in_season_simulation_uses_current_standings():
 	print('test_in_season_simulation_uses_current_standings ok')
 
 
+def _row_map(table):
+	return {row['Team']: row for _, row in table.iterrows()}
+
+
+def test_exact_zero_when_no_path_remains():
+	'''
+	Eliminated clubs are exactly 0.00%. The <0.006% floor (3/50,000) stays only
+	when the outcome is still reachable and the sample count was zero.
+	'''
+	if sp.format_outcome_pct(0, 50000, True) != '<0.006%':
+		_fail('an open outcome with a zero count must keep the 50,000-sim floor')
+	if sp.format_outcome_pct(0, 50000, False) != '0.00%':
+		_fail('a closed outcome with a zero count must be 0.00%')
+	if sp.format_outcome_pct(25000, 50000, True) != '50.000%':
+		_fail('nonzero sample counts stay the observed rate')
+
+	# Games remain, so the field is not locked. Do not invent a magic number.
+	open_paths = sp.outcome_paths(None, utils.TEAM_DIVISIONS)
+	if open_paths['Win WS'] != set(utils.TEAM_DIVISIONS):
+		_fail('in-season title paths should include every team')
+
+	one_game = sp.lock_postseason_bracket(make_log(WINS_2026, wc_game_one()), '2026-09-30')
+	one_paths = sp.outcome_paths(one_game, utils.TEAM_DIVISIONS)
+	field = set(NL_DIV + AL_DIV + NL_WC + AL_WC)
+	if one_paths['Playoffs'] != field:
+		_fail(f"playoff paths {sorted(one_paths['Playoffs'])}")
+	if one_paths['Win Division'] != set(NL_DIV + AL_DIV):
+		_fail('division title paths should be the six winners once the field is locked')
+	# A 1-0 lead does not end a best-of-3, so every playoff club can still reach the LDS.
+	if one_paths['Reach Div. Rd.'] != field:
+		_fail(f"1-0 series dropped {sorted(field - one_paths['Reach Div. Rd.'])}")
+	for team in utils.TEAM_DIVISIONS:
+		if team in field:
+			continue
+		for column in sp.OUTCOME_COLUMNS:
+			if team in one_paths[column]:
+				_fail(f'{team} has a {column} path outside the locked field')
+
+	sweeps = []
+	for home, away in (('ATL', 'PHI'), ('SDP', 'CHC'), ('NYY', 'BOS'), ('HOU', 'CHW')):
+		sweeps.append(_game('2026-09-29', home, away, 1, 0))
+		sweeps.append(_game('2026-09-30', home, away, 1, 0))
+	# MIL beats SDP in three games. SDP is out of the LCS; the other LDS series are unplayed.
+	sweeps.extend([
+		_game('2026-10-03', 'MIL', 'SDP', 1, 0),
+		_game('2026-10-04', 'MIL', 'SDP', 1, 0),
+		_game('2026-10-06', 'SDP', 'MIL', 0, 1),
+	])
+	swept = sp.lock_postseason_bracket(make_log(WINS_2026, sweeps), '2026-10-01')
+	swept_paths = sp.outcome_paths(swept, utils.TEAM_DIVISIONS)
+	for team in ('PHI', 'CHC', 'BOS', 'CHW'):
+		if team not in swept_paths['Playoffs'] or team in swept_paths['Reach Div. Rd.']:
+			_fail(f'{team} series result was not applied to the division round')
+		for column in ('Reach CS', 'Reach WS', 'Win WS'):
+			if team in swept_paths[column]:
+				_fail(f'{team} still has a path to {column}')
+	if 'SDP' not in swept_paths['Reach Div. Rd.'] or 'SDP' in swept_paths['Reach CS']:
+		_fail('SDP reached the division round and then lost it')
+	if 'MIL' not in swept_paths['Reach CS']:
+		_fail('MIL should still be alive for the CS')
+	for column in sp.OUTCOME_COLUMNS:
+		if not swept_paths[column] <= swept_paths['Playoffs']:
+			_fail(f'{column} includes a team outside the playoff field')
+	if not swept_paths['Win WS'] <= swept_paths['Reach WS'] <= swept_paths['Reach CS'] <= swept_paths['Reach Div. Rd.']:
+		_fail('later rounds are not nested inside earlier rounds')
+
+	# Higher seed wins every remaining game, so a 1-0 trailer is never sampled.
+	# The series is not over, so that cell stays the floor. Clubs outside the
+	# field, and wild cards for the division title, are exactly 0.00%.
+	sim = _Sim('2026-09-30', WINS_2026, home_winp = 1.0)
+	n = 30
+	table, got_n = sp.get_playoff_probs(sim, make_log(WINS_2026, wc_game_one()), n_sims = n)
+	if got_n != n:
+		_fail(f'expected {n} sims, got {got_n}')
+	floor = '<{:.3f}%'.format(100.0 * 3.0 / n)
+	rows = _row_map(table)
+	for team in ('COL', 'DET', 'CIN', 'TOR', 'SEA', 'ARI'):
+		for column in sp.OUTCOME_COLUMNS:
+			if rows[team][column] != '0.00%':
+				_fail(f'{team} {column} is {rows[team][column]}, expected 0.00%')
+	for team in NL_WC + AL_WC:
+		if rows[team]['Playoffs'] != '100.000%' or rows[team]['Win Division'] != '0.00%':
+			_fail(f'{team} playoff/division cells {rows[team]["Playoffs"]} {rows[team]["Win Division"]}')
+	for team in ('PHI', 'CHC', 'BOS', 'CHW'):
+		if rows[team]['Reach Div. Rd.'] != floor:
+			_fail(f'{team} division-round cell {rows[team]["Reach Div. Rd."]} should be the floor {floor}')
+	if rows['ATL']['Reach Div. Rd.'] != '100.000%' or rows['HOU']['Win Division'] != '100.000%':
+		_fail('clinched-or-certain cells should stay at 100%')
+	print('test_exact_zero_when_no_path_remains ok')
+
+
 def test_real_game_log_if_present():
 	path = 'DATA/game_log_2026-09-30.csv'
 	if not os.path.exists(path):
@@ -270,6 +361,52 @@ def test_real_game_log_if_present():
 	print('test_real_game_log_if_present ok')
 
 
+def test_published_october_log_prints_exact_zero():
+	'''The 2026-10-01 page showed <0.006% for clubs the locked field had already eliminated.'''
+	path = 'DATA/game_log_2026-10-01.csv'
+	if not os.path.exists(path):
+		print('test_published_october_log_prints_exact_zero skipped')
+		return
+	log = pd.read_csv(path)
+	bracket = sp.lock_postseason_bracket(log, '2026-10-01')
+	paths = sp.outcome_paths(bracket, utils.TEAM_DIVISIONS)
+	# CHW swept HOU, NYY swept BOS, SDP swept CHC. ATL-PHI is 1-1.
+	for team in ('BOS', 'CHC', 'HOU'):
+		if team in paths['Reach Div. Rd.']:
+			_fail(f'{team} still has a division-round path on the October 1 log')
+	for team in ('ATL', 'PHI', 'NYY', 'SDP', 'CHW') + BYES:
+		if team not in paths['Reach Div. Rd.']:
+			_fail(f'{team} should still be able to reach the division round on October 1')
+	if 'PHI' in paths['Win Division'] or 'NYY' in paths['Win Division']:
+		_fail('wild cards cannot win a division after the field locks')
+	for team in ('COL', 'DET', 'TOR', 'SEA', 'CIN'):
+		if team in paths['Playoffs']:
+			_fail(f'{team} is outside the field but still has a playoff path')
+
+	sim = _Sim('2026-10-01', {name: 0 for name in utils.TEAM_DIVISIONS}, home_winp = 1.0)
+	n = 20
+	table, _got = sp.get_playoff_probs(sim, log, n_sims = n)
+	rows = _row_map(table)
+	floor = '<{:.3f}%'.format(100.0 * 3.0 / n)
+	for team in ('COL', 'DET', 'TOR', 'SEA', 'CIN', 'ARI'):
+		for column in sp.OUTCOME_COLUMNS:
+			if rows[team][column] != '0.00%':
+				_fail(f'{team} {column} published as {rows[team][column]}')
+	for team in ('BOS', 'CHC'):
+		if rows[team]['Playoffs'] != '100.000%' or rows[team]['Reach Div. Rd.'] != '0.00%':
+			_fail(f'{team} should be in the playoffs and out of the division round')
+		if rows[team]['Win WS'] != '0.00%':
+			_fail(f'{team} title cell {rows[team]["Win WS"]}')
+	if rows['HOU']['Win Division'] != '100.000%' or rows['HOU']['Reach Div. Rd.'] != '0.00%':
+		_fail(f"HOU cells {rows['HOU']['Win Division']} {rows['HOU']['Reach Div. Rd.']}")
+	# Game 3 is unplayed, so PHI can still advance. home_winp=1 never samples that.
+	if rows['PHI']['Reach Div. Rd.'] != floor or rows['PHI']['Win Division'] != '0.00%':
+		_fail(f"PHI cells division {rows['PHI']['Win Division']} LDS {rows['PHI']['Reach Div. Rd.']}")
+	if rows['NYY']['Win Division'] != '0.00%' or rows['NYY']['Reach Div. Rd.'] != '100.000%':
+		_fail('NYY won the wild card and did not win the division')
+	print('test_published_october_log_prints_exact_zero ok')
+
+
 def main():
 	test_series_lengths()
 	test_locked_field_ignores_stale_bracket_and_playoff_wins()
@@ -277,6 +414,8 @@ def main():
 	test_clinched_series_advances_only_the_winner()
 	test_in_season_simulation_uses_current_standings()
 	test_real_game_log_if_present()
+	test_exact_zero_when_no_path_remains()
+	test_published_october_log_prints_exact_zero()
 	print('all playoff regression checks passed')
 
 

@@ -178,7 +178,8 @@ def save_markdown_df(predictions, ratings, date_str, performance, sims = 50000):
 		md.write('\n\n')
 		md.write('# Team Elo Ratings\n')
 		md.write(f"This table summarizes each team's Elo rating (updated from game results only; pitcher adjustments are pre-game) and their chances of making it to various stages of the postseason based on {sims} simulations of the rest of the regular season and playoffs. ")
-		md.write("Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when the outcome did not occur in any simulation.\n\n")
+		md.write("Percentages starting with '<' are a rule-of-three upper bound (~95% binomial confidence) when that outcome is still possible but did not occur in any simulation. ")
+		md.write("A shown 0.00% means the team has no remaining path to that outcome.\n\n")
 		ratings.index = ratings.index + 1
 		ratings.to_markdown(buf = md, index = True)
 
