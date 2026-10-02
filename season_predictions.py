@@ -345,6 +345,106 @@ def _series_line(label, high, low, form, win_index):
 		status = 'in progress'
 	return f'{label} {high} {high_wins}-{low_wins} {low} ({status}, first to {needed})'
 
+OUTCOME_COLUMNS = (
+	'Playoffs',
+	'Win Division',
+	'Reach Div. Rd.',
+	'Reach CS',
+	'Reach WS',
+	'Win WS',
+)
+
+def format_outcome_pct(count, n_sims, possible):
+	'''
+	Publish one cell of the probability table.
+	A zero Monte Carlo count is the rule-of-three floor only when a path to the
+	outcome still exists. If the bracket already proves the path is gone, the
+	chance is exactly zero.
+	'''
+	count = int(count)
+	if count <= 0 and not possible:
+		return '0.00%'
+	if count <= 0:
+		return '<{:.3f}%'.format(100.0 * 3.0 / n_sims)
+	return '{:.3f}%'.format(100.0 * count / n_sims)
+
+def _clinched_series_winner(team_a, team_b, form, win_index):
+	'''Return the team that has already won the series, or None if it is unfinished.'''
+	if team_a == team_b:
+		return team_a
+	a_wins, b_wins = _indexed_wins(win_index, team_a, team_b)
+	needed = _wins_needed(form)
+	if a_wins >= needed:
+		return team_a
+	if b_wins >= needed:
+		return team_b
+	return None
+
+def _teams_that_can_win_series(side_a, side_b, form, win_index):
+	'''
+	Teams that can still win the series between two slots.
+	A slot is the set of teams that can still fill it. The series cannot have
+	started until both slots are a single known team, so an unfinished Wild Card
+	does not eliminate either club from a later round.
+	'''
+	if len(side_a) == 1 and len(side_b) == 1:
+		team_a = next(iter(side_a))
+		team_b = next(iter(side_b))
+		winner = _clinched_series_winner(team_a, team_b, form, win_index)
+		if winner is not None:
+			return {winner}
+		return {team_a, team_b}
+	return set(side_a) | set(side_b)
+
+def outcome_paths(bracket, teams):
+	'''
+	Map each published column to the teams that still have a path to it.
+
+	When the regular season is over, lock_postseason_bracket has already frozen
+	the 12-team field from regular-season games. Clubs outside that field cannot
+	make the playoffs, and only the six division winners can win a division.
+	A completed series in the game log (the same win index the simulator uses)
+	removes the loser from that round and every round after it. An unfinished
+	series leaves both clubs alive.
+
+	bracket is None while games remain. This does not add a separate
+	regular-season magic-number model; an unsampled but still-open outcome keeps
+	the simulation floor.
+	'''
+	everyone = set(teams)
+	if bracket is None:
+		return {column: set(everyone) for column in OUTCOME_COLUMNS}
+
+	win_index = bracket['win_index']
+	division_winners = set()
+	field = set()
+	lds_slots = []
+	for league in ('NL', 'AL'):
+		seed1, seed2, seed3 = bracket['divw'][league]
+		wc1, wc2, wc3 = bracket['wcs'][league]
+		division_winners.update((seed1, seed2, seed3))
+		field.update((seed1, seed2, seed3, wc1, wc2, wc3))
+		# Same order as simulate_postseason: 1-seed bye, 4 vs 5, 2-seed bye, 3 vs 6.
+		for high, low in ((seed1, seed1), (wc1, wc2), (seed2, seed2), (seed3, wc3)):
+			winner = _clinched_series_winner(high, low, WC_FORM, win_index)
+			lds_slots.append({winner} if winner is not None else {high, low})
+
+	cs_slots = [
+		_teams_that_can_win_series(lds_slots[i], lds_slots[i + 1], LDS_FORM, win_index)
+		for i in range(0, len(lds_slots), 2)
+	]
+	nl_ws = _teams_that_can_win_series(cs_slots[0], cs_slots[1], LCS_FORM, win_index)
+	al_ws = _teams_that_can_win_series(cs_slots[2], cs_slots[3], LCS_FORM, win_index)
+	champions = _teams_that_can_win_series(nl_ws, al_ws, WS_FORM, win_index)
+	return {
+		'Playoffs': field,
+		'Win Division': division_winners,
+		'Reach Div. Rd.': set().union(*lds_slots),
+		'Reach CS': set().union(*cs_slots),
+		'Reach WS': nl_ws | al_ws,
+		'Win WS': champions,
+	}
+
 def format_postseason_status(bracket):
 	'''One-time log of the locked field and Wild Card series state.'''
 	lines = [f"[PLAYOFF] Field locked from regular-season games before {bracket['playoff_start']}"]
@@ -440,14 +540,16 @@ def get_playoff_probs(this_sim, game_data, n_sims = None):
 	outcomes_df = pd.DataFrame([playoffs, div_wins, divisional, championship, world_series, ws_winner]).T.fillna(0).reset_index()
 	outcomes_df.columns = ['Team', 'Playoffs', 'Win Division', 'Reach Div. Rd.', 'Reach CS', 'Reach WS', 'Win WS']
 	count_df = outcomes_df.iloc[:, 1:7].astype(int)
-	# Observed rate with 3 decimals; rule-of-three cap when count==0 (~95% binomial upper bound)
-	rule3_pct = 100.0 * 3.0 / n_sims
-	def _fmt_pct(c):
-		c = int(c)
-		if c == 0:
-			return '<{:.3f}%'.format(rule3_pct)
-		return '{:.3f}%'.format(100.0 * c / n_sims)
-	formatted = count_df.apply(lambda col: col.map(_fmt_pct))
+	# Zero samples are a rule-of-three floor only while a path remains. A locked
+	# field or a clinched series makes the chance exactly zero.
+	paths = outcome_paths(precomputed_bracket, this_sim.teams)
+	formatted = count_df.copy()
+	for column in count_df.columns:
+		alive = paths[column]
+		formatted[column] = [
+			format_outcome_pct(count, n_sims, team in alive)
+			for team, count in zip(outcomes_df['Team'], count_df[column])
+		]
 	outcomes_df = pd.concat([outcomes_df[['Team']], formatted], axis=1)
 	return outcomes_df, n_sims
 
