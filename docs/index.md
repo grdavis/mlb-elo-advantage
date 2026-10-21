@@ -1,7 +1,7 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2026-10-20 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2026-10-21 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 43% of games and have a 58.33% ROI over the last 7 days. ROI is 21.5% over the last 30 days and 1.64% over the last 365.
+Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 50% of games and have a 58.33% ROI over the last 7 days. ROI is 12.5% over the last 30 days and 1.64% over the last 365.
 
 | Date   | Away   | Home   | Away Pitcher   | Home Pitcher   | Away WinP   | Home WinP   | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
 |--------|--------|--------|----------------|----------------|-------------|-------------|-----------|------------------|-----------|------------------|
@@ -11,9 +11,9 @@ This table summarizes each team's Elo rating (updated from game results only; pi
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | MIL    |         1594 |              7 |              21 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 68.172%  |
-|  2 | LAD    |         1560 |             -7 |              -4 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 0.00%      | 0.00%    |
-|  3 | TBD    |         1552 |              8 |              14 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 31.828%  |
+|  1 | MIL    |         1594 |              3 |              21 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 68.030%  |
+|  2 | LAD    |         1560 |             -3 |              -4 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 0.00%      | 0.00%    |
+|  3 | TBD    |         1552 |              8 |              14 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 31.970%  |
 |  4 | NYY    |         1546 |              0 |               0 | 100.000%   | 0.00%          | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
 |  5 | SDP    |         1542 |              0 |               5 | 100.000%   | 0.00%          | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
 |  6 | CHC    |         1539 |              0 |             -12 | 100.000%   | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
@@ -23,20 +23,20 @@ This table summarizes each team's Elo rating (updated from game results only; pi
 | 10 | ARI    |         1512 |              0 |               5 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 11 | CLE    |         1512 |             -8 |               7 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 0.00%      | 0.00%    |
 | 12 | PIT    |         1508 |              0 |              -1 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 13 | DET    |         1507 |              0 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 13 | DET    |         1507 |              0 |              -4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 14 | CHW    |         1504 |              0 |               3 | 100.000%   | 0.00%          | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
-| 15 | BAL    |         1502 |              0 |               8 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 16 | TOR    |         1501 |              0 |              -5 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 15 | BAL    |         1502 |              0 |               7 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 16 | TOR    |         1501 |              0 |              -4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 17 | NYM    |         1501 |              0 |               4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 18 | FLA    |         1497 |              0 |               6 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 19 | HOU    |         1491 |              0 |               5 | 100.000%   | 100.000%       | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 20 | TEX    |         1484 |              0 |              -7 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 21 | WSN    |         1481 |              0 |               1 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 21 | WSN    |         1481 |              0 |               4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 22 | STL    |         1480 |              0 |              -3 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 23 | SEA    |         1477 |              0 |              -3 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 24 | MIN    |         1472 |              0 |               4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 24 | MIN    |         1472 |              0 |               6 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 25 | CIN    |         1464 |              0 |               4 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-| 26 | SFG    |         1463 |              0 |              -5 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+| 26 | SFG    |         1463 |              0 |              -8 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 27 | KCR    |         1463 |              0 |              -8 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 28 | ANA    |         1443 |              0 |              -5 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 29 | OAK    |         1418 |              0 |              -3 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
