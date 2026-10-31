@@ -1,7 +1,7 @@
-# MLB Elo Game Predictions and Playoff Probabilities for 2026-10-30 - @grdavis
+# MLB Elo Game Predictions and Playoff Probabilities for 2026-10-31 - @grdavis
 Below are predictions for today's MLB games using an ELO rating methodology. Check out the full [mlb-elo-advantage](https://github.com/grdavis/mlb-elo-advantage) repository on github to see methodology and more.
 
-Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 20% of games and have a 83.33% ROI over the last 7 days. ROI is 46.94% over the last 30 days and 2.08% over the last 365.
+Win probabilities include a starting-pitcher Game Score adjustment from the MLB Stats API (team Elo does not know who is on the mound; the market does). Blank pitcher names mean no probable starter is listed yet; that side uses a league-average Game Score of 50. The thresholds are an absolute 5pp edge vs the bettable moneyline, and we do not bet sides longer than +165. Those rules were locked on 2019-2023 data (not the recent losing window). For transparency, these recommendations have been triggered for 25% of games and have a 83.33% ROI over the last 7 days. ROI is 46.94% over the last 30 days and 2.08% over the last 365.
 
 | Date   | Away   | Home   | Away Pitcher   | Home Pitcher   | Away WinP   | Home WinP   | Away ML   | Away Threshold   | Home ML   | Home Threshold   |
 |--------|--------|--------|----------------|----------------|-------------|-------------|-----------|------------------|-----------|------------------|
@@ -11,15 +11,15 @@ This table summarizes each team's Elo rating (updated from game results only; pi
 
 |    | Team   |   Elo Rating |   7-Day Change |   30-Day Change | Playoffs   | Win Division   | Reach Div. Rd.   | Reach CS   | Reach WS   | Win WS   |
 |---:|:-------|-------------:|---------------:|----------------:|:-----------|:---------------|:-----------------|:-----------|:-----------|:---------|
-|  1 | MIL    |         1603 |              8 |              24 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 100.000% |
+|  1 | MIL    |         1603 |              6 |              24 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 100.000% |
 |  2 | LAD    |         1560 |              0 |              -6 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 0.00%      | 0.00%    |
 |  3 | NYY    |         1546 |              0 |              -7 | 100.000%   | 0.00%          | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
-|  4 | TBD    |         1543 |             -7 |               4 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 0.00%    |
+|  4 | TBD    |         1543 |             -6 |               4 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 100.000%   | 0.00%    |
 |  5 | SDP    |         1542 |              0 |              -4 | 100.000%   | 0.00%          | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
 |  6 | CHC    |         1539 |              0 |               0 | 100.000%   | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  7 | ATL    |         1527 |              0 |              -2 | 100.000%   | 100.000%       | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
+|  7 | ATL    |         1527 |              0 |              -5 | 100.000%   | 100.000%       | 100.000%         | 0.00%      | 0.00%      | 0.00%    |
 |  8 | BOS    |         1527 |              0 |               0 | 100.000%   | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
-|  9 | PHI    |         1521 |              0 |              -4 | 100.000%   | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
+|  9 | PHI    |         1521 |              0 |               0 | 100.000%   | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 10 | ARI    |         1512 |              0 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
 | 11 | CLE    |         1512 |              0 |               1 | 100.000%   | 100.000%       | 100.000%         | 100.000%   | 0.00%      | 0.00%    |
 | 12 | PIT    |         1508 |              0 |               0 | 0.00%      | 0.00%          | 0.00%            | 0.00%      | 0.00%      | 0.00%    |
